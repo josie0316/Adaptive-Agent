@@ -28,7 +28,6 @@ def get_avg_metrics(metrics):
 
 
 def get_avg_metrics_per_player(metrics):
-    # wenhao: get avg metrics for parreller workers
     temp = {}
     # temp = [defaultdict(list) for _ in range(n_players)]
     for p in metrics[0]:

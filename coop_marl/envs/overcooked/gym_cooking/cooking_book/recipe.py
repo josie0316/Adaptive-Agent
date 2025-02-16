@@ -60,7 +60,6 @@ class Recipe:
         refactors = np.zeros(num_goals, dtype=np.int32)
         for node in self.node_list:
             # goals[node.id_num] = int(not node.achieved)
-            # Wenhao: count positive numbers
             refactors[node.id_num] = int(node.refactor)
         return refactors
 
@@ -68,7 +67,6 @@ class Recipe:
         goals = np.zeros(num_goals, dtype=np.int32)
         for node in self.node_list:
             # goals[node.id_num] = int(not node.achieved)
-            # Wenhao: count positive numbers
             goals[node.id_num] = int(node.achieved_num)
         return goals
 

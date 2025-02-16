@@ -123,7 +123,6 @@ parallel_env = parallel_wrapper_fn(env)
 class CookingEnvironment(AECEnv):
     """Environment object for Overcooked."""
 
-    ### The environment is updating by Yang to add the score, which calculate the total outcomes of completed recipe.
     metadata = {"render.modes": ["human"], "name": "cooking_zoo", "is_parallelizable": True}
 
     def __init__(
@@ -177,7 +176,7 @@ class CookingEnvironment(AECEnv):
         # self.recipe_graphs = [RECIPES[recipe]() for recipe in recipes]
         # # sort the recipe so that the longest recipe will be checked for completion first
         # self.recipe_graphs = sorted(self.recipe_graphs, key=lambda x: -len(x.node_list))
-        # wenhao: add order list
+
         self.recipe_graphs = []
         self.recipe_interval = recipe_interval
         self.update_order_list()
@@ -248,7 +247,6 @@ class CookingEnvironment(AECEnv):
         self.held_obj = []
 
     def get_obs_size(self):
-        # Wenhao: current setting for dense observation may not suitable for infinite food or plate
         all_objs = copy.deepcopy(self.world.world_objects)
 
         n_obj = 0
@@ -294,7 +292,6 @@ class CookingEnvironment(AECEnv):
 
         self.recipe_graphs = new_recipe_graph
 
-    # wenhao: add order list; update it to be 3 orders
     def update_order_list(self):
         punish_score = 0
         for recipe_graph in self.recipe_graphs:

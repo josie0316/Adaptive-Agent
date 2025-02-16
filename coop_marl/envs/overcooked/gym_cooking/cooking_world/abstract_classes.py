@@ -75,7 +75,7 @@ class Container(DynamicObject, ABC):
     def add_content(self, content):
         self.content.append(content)
 
-    # wenhao: delete from Container
+
     def remove(self, world):
         for content in self.content:
             world.delete_object(content)
