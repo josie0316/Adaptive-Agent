@@ -1,0 +1,159 @@
+{
+    "LEVEL_LAYOUT": "--------\n-      -\n-      -\n- ++++ -\n-      -\n-      -\n--------",
+    "STATIC_OBJECTS": [
+        {
+            "CutBoard": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    1
+                ],
+                "Y_POSITION": [
+                    6
+                ]
+            }
+        },
+        {
+            "CutBoard": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    3
+                ],
+                "Y_POSITION": [
+                    6
+                ]
+            }
+        },
+        {
+            "DeliverSquare": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    7
+                ],
+                "Y_POSITION": [
+                    3
+                ]
+            }
+        },
+        {
+            "DeliverSquare": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    7
+                ],
+                "Y_POSITION": [
+                    4
+                ]
+            }
+        },
+        {
+            "BeefStation": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    0
+                ],
+                "Y_POSITION": [
+                    3
+                ]
+            }
+        },
+        {
+            "BreadStation": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    0
+                ],
+                "Y_POSITION": [
+                    1
+                ]
+            }
+        },
+        {
+            "LettuceStation": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    0
+                ],
+                "Y_POSITION": [
+                    2
+                ]
+            }
+        },
+        {
+            "PlateStation": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    3
+                ],
+                "Y_POSITION": [
+                    0
+                ]
+            }
+        },
+        {
+            "Pan": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    5
+                ],
+                "Y_POSITION": [
+                    6
+                ]
+            }
+        },
+        {
+            "Pan": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    6
+                ],
+                "Y_POSITION": [
+                    6
+                ]
+            }
+        },
+        {
+            "Dustbin": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    2
+                ],
+                "Y_POSITION": [
+                    0
+                ]
+            }
+        }
+    ],
+    "DYNAMIC_OBJECTS": [
+        {
+            "FireExtinguisher": {
+                "COUNT": 1,
+                "X_POSITION": [
+                    7
+                ],
+                "Y_POSITION": [
+                    2
+                ]
+            }
+        }
+    ],
+    "AGENTS": [
+        {
+            "MAX_COUNT": 1,
+            "X_POSITION": [
+                2
+            ],
+            "Y_POSITION": [
+                2
+            ]
+        },
+        {
+            "MAX_COUNT": 1,
+            "X_POSITION": [
+                4
+            ],
+            "Y_POSITION": [
+                1
+            ]
+        }
+    ]
+}

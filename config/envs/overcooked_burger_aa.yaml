@@ -1,0 +1,18 @@
+# Format goes like this
+# trainer_name:
+#   k: v
+
+name: overcooked
+# mode: burger
+mode: burger_aa_new
+max_order: 4
+horizon: 1000 # 1000
+
+recipes: ["BeefBurgerDeliver", "LettuceBurgerDeliver", "BeefLettuceBurgerDeliver"]
+obs_spaces: 2d_flatten
+num_agents: 2
+interact_reward: 0
+progress_reward: 5.0
+complete_reward: 20.0
+punish_reward: -10.0
+step_cost: 0

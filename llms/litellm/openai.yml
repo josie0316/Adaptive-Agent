@@ -1,0 +1,13 @@
+model_list:
+  - model_name: 4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini-2024-07-18
+      api_key:
+  - model_name: 4o
+    litellm_params:
+      model: openai/gpt-4o-2024-11-20
+      api_key:
+  - model_name: o1-mini
+    litellm_params:
+      model: openai/o1-mini
+      api_key:

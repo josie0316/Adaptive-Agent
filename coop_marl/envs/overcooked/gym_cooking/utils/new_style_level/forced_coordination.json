@@ -1,0 +1,15 @@
+{
+  "LEVEL_LAYOUT": "-----\n- - -\n- - -\n- - -\n-----",
+  "STATIC_OBJECTS": [{"DeliverSquare": {"COUNT": 1, "X_POSITION": [3], "Y_POSITION":  [4]}},
+                     {"OnionStation": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION": [1]}},
+                     {"OnionStation": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION": [2]}},
+                      {"PlateStation": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION": [3]}},
+                      {"SoupPot": {"COUNT":1, "X_POSITION": [3], "Y_POSITION": [0]}},
+                      {"SoupPot": {"COUNT":1, "X_POSITION": [4], "Y_POSITION": [1]}}
+                   ],
+  "DYNAMIC_OBJECTS": [
+                    ],
+  "AGENTS": [{"MAX_COUNT": 1, "X_POSITION": [1], "Y_POSITION":  [1, 2 ,3]},
+             {"MAX_COUNT": 1, "X_POSITION": [3], "Y_POSITION":  [1 ,2, 3]}
+            ]
+}

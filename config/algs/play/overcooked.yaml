@@ -1,0 +1,24 @@
+# Format goes like this
+# def_config:
+#   k: v
+# config:
+#   k: v
+def_config: !include config/algs/sp/default.yaml
+
+runner: StepsRunner
+n_iter: 2000
+n_sp_ts: 1000 #it will times env_num
+eval_interval: 40
+pop_size: 1
+kernel_gamma: 0.0
+lr: 0.0005
+num_mb: 5
+epochs: 15
+ent_coef: 0.03
+shared_z: False
+env_num: 10
+
+urgent_response_history_n_event: 3
+urgent_response_interval_n_timestep: 20
+reflection_history_n_event: 10
+reflection_interval_n_timestep: 50

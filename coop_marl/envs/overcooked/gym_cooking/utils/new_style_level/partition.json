@@ -1,0 +1,25 @@
+{
+    "LEVEL_LAYOUT": "-------\n-  -  -\n-  -  -\n-  -  -\n-  -  -\n-  -  -\n-  -  -\n-  -  -\n-------",
+    "STATIC_OBJECTS": [{"CutBoard": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION":  [1]}},
+                       {"CutBoard": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION":  [2]}},
+                       {"CutBoard": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION":  [3]}},
+                       {"CutBoard": {"COUNT": 1, "X_POSITION": [6], "Y_POSITION":  [3]}},
+                       {"DeliverSquare": {"COUNT": 1, "X_POSITION": [6], "Y_POSITION":  [7]}},
+                       {"OnionStation": {"COUNT": 1, "X_POSITION": [6], "Y_POSITION": [1]}},
+                       {"OnionStation": {"COUNT": 1, "X_POSITION": [6], "Y_POSITION": [2]}},
+                       {"TomatoStation": {"COUNT": 1, "X_POSITION": [1], "Y_POSITION": [0]}},
+                       {"TomatoStation": {"COUNT": 1, "X_POSITION": [2], "Y_POSITION": [0]}},
+                       {"LettuceStation": {"COUNT": 1, "X_POSITION": [4], "Y_POSITION": [0]}},
+                       {"LettuceStation": {"COUNT": 1, "X_POSITION": [5], "Y_POSITION": [0]}},
+                       {"PlateStation": {"COUNT": 1, "X_POSITION": [0], "Y_POSITION": [4]}},
+                       {"SoupPot": {"COUNT":1, "X_POSITION": [0], "Y_POSITION": [5]}},
+                       {"SoupPot": {"COUNT":1, "X_POSITION": [0], "Y_POSITION": [6]}},
+                       {"SoupPot": {"COUNT":1, "X_POSITION": [0], "Y_POSITION": [7]}},
+                       {"Dustbin": {"COUNT":1, "X_POSITION": [1], "Y_POSITION": [8]}},
+                       {"Dustbin": {"COUNT":1, "X_POSITION": [2], "Y_POSITION": [8]}},
+                       {"Dustbin": {"COUNT":1, "X_POSITION": [5], "Y_POSITION": [8]}}
+                      ],
+    "DYNAMIC_OBJECTS": [{"FireExtinguisher": {"COUNT":1, "X_POSITION": [4], "Y_POSITION": [8]}}],
+    "AGENTS": [{"MAX_COUNT": 1, "X_POSITION": [1], "Y_POSITION":  [1]},
+              {"MAX_COUNT": 1, "X_POSITION": [5], "Y_POSITION":  [1]}]
+  }

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gym-cooking</title>
+    <script src="../static/js/socket.io.min.js"></script>
+</head>
+<style>
+    .agent_communication {
+        width: 480px;
+        height: 160px;
+        border: 1.5px solid black;
+        margin: 5px;
+        border-radius: 10px;
+        justify-content: center;
+    }
+
+    .communication {
+        width: 480px;
+        height: 520px;
+        border: 1.5px solid black;
+        margin: 5px;
+        border-radius: 10px;
+        justify-content: center;
+    }
+
+    #agent_info {
+        width: 460px;
+        height: 140px;
+        background-color: #f4f4f4;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        /* align-items: center; */
+        justify-content: center;
+    }
+
+    #communication_info {
+        width: 460px;
+        height: 340px;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        /* align-items: center; */
+        /* justify-content: center; */
+    }
+
+    .info_div {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: row;
+        padding: 5px;
+        overflow: visible;
+    }
+
+    .tiny_div {
+        width: 380px;
+        padding: 0px 5px;
+        justify-content: center;
+    }
+
+    .timestep_div {
+        width: 40px;
+        padding: 0px 5px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .title {
+        position: relative;
+        top: -5px;
+    }
+
+    .agent_tiny_div {
+        width: 380px;
+        min-height: 24px;
+        line-height: 24px;
+        padding: 0px 5px;
+        margin: 4px 0px;
+        justify-content: center;
+        align-items: center;
+        text-align: start;
+        background-color: #e8e8e8;
+        border-radius: 5px;
+        overflow: visible;
+    }
+
+    .human_tiny_div {
+        width: 380px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0px 5px;
+        margin: 4px 0px;
+        justify-content: center;
+        align-items: center;
+        text-align: end;
+        background-color: #dddddd;
+        border-radius: 5px;
+    }
+
+    .agent_character_div {
+        width: 60px;
+        height: 22px;
+        margin: 0px 5px;
+        border-radius: 5px;
+        background-color: red;
+        color: white;
+        text-align: center;
+    }
+
+    .human_character_div {
+        width: 60px;
+        height: 22px;
+        margin: 0px 5px;
+        border-radius: 5px;
+        background-color: green;
+        color: white;
+        text-align: center;
+    }
+
+    #key_instruction {
+        padding: 0px 5px;
+    }
+
+    .keys {
+        width: 18px;
+        height: 18px;
+        border: 0.5px solid black;
+        border-radius: 5px;
+        font-size: 1.1em;
+        text-align: center;
+        line-height: 18px;
+        margin: 0px 5px;
+    }
+
+    .keys_name_1 {
+        width: 118px;
+        height: 30px;
+        font-size: 0.9em;
+        line-height: 30px;
+        text-align: left;
+        /* padding: 0px 5px; */
+    }
+
+    .keys_name_2 {
+        width: 47px;
+        height: 30px;
+        font-size: 0.9em;
+        line-height: 30px;
+        text-align: left;
+        /* padding: 0px 5px; */
+    }
+
+    .keys_name_3 {
+        width: 37px;
+        height: 30px;
+        font-size: 0.9em;
+        line-height: 30px;
+        text-align: left;
+        /* padding: 0px 5px; */
+    }
+
+    .keys_name_4 {
+        width: 126px;
+        height: 30px;
+        font-size: 0.9em;
+        line-height: 30px;
+        text-align: left;
+        /* padding: 0px 5px; */
+    }
+
+    .instruction_div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        height: 30px;
+        margin: 5px 0px;
+        font-size: 0.91em;
+    }
+
+    .click_div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-radius: 10px;
+        margin: 0px 3px;
+        background-color: #f9e9cc;
+    }
+
+    :hover.click_div {
+        background-color: #fff2df;
+        cursor: pointer;
+    }
+</style>
+
+<body>
+    <div style="display: flex; align-items: center; flex-direction: column;">
+        <h1>Gym-cooking</h1>
+        <!-- <div style="font-size: larger;">
+            You are index: <span id="index"></span>, which is the <span id="idx0"
+                style="color: #1c70ca; display: none;">BLUE</span><span id="idx1"
+                style="color: rgb(68, 153, 113); display: none;">GREEN</span> hat.
+        </div> -->
+
+        <div style="font-size: larger;">
+            You are controlling the agent with <span style="color: #000000">BLACK</span> hat.
+        </div>
+        <div style="font-size: larger;" id="partner_color">
+            Your partner is the agent with <span id="idx-1" style="color: #1c70ca; display: none">BLUE</span> <span id="idx0" style="color: #c30000; display: none;">RED</span><span
+                id="idx3" style="color: rgb(68, 153, 113); display: none;">GREEN</span> <span id="idx2" style="color: #da4bd2; display: none">PINK</span> <span id="idx1" style="color: #dc742a; display: none">ORANGE</span> hat.
+        </div>
+        <div style="font-size: larger; display: none" id="trail_info">
+            This is the TRAIL game.<br>，。(，)
+        </div>
+        <div style="font-size: larger; display: none" id="human_test">
+            This is the Level Testing game. Please try to achieve a score as higher as possible. <br>
+            ，.(，)
+        </div>
+        <div style="font-size: larger; display: none" id="main_game">
+            This is the <span id="game_id"></span>/<span id="max_id"></span> round game.
+        </div>
+        <div style="font-size: larger;" id="wait">
+            <span>You are waiting for the game to start, Refresh your web. <br>30，。
+            </span>
+        </div>
+        <br>
+        <br>
+        <div id="main-game" style="display: flex; flex-direction: row;">
+            <div style="display: flex; align-items: center; flex-direction: column; margin:10px 40px; padding:0px">
+                <img src="/static/images/beefburger.png" style="width:250px">
+                <img src="/static/images/fire.png" style="width:250px">
+                <img src="/static/images/lettuceburger.png" style="width:250px">
+                <img src="/static/images/beeflettuceburger.png" style="width:250px">
+            </div>
+            <div id="game-canvas"></div>
+
+            <div style="display: flex; align-items: center; flex-direction: column; margin:0px 40px; padding:10px">
+                <div class="title"></div>
+                <div class="communication" id="communication">
+
+                    <div id="communication_info">
+
+                    </div>
+
+                    <div id="key_instruction">
+                        <hr />
+                        <div class="instruction_div">Click below buttons or press the shortcuts to send
+                            messages:<br>： </div>
+                        <div class="instruction_div">
+                            <div class="click_div" id="button_1">
+                                <div class="keys">1</div>
+                                <div class="keys_name_1">LettuceBurger</div>
+                            </div>
+                            <div class="click_div" id="button_4">
+                                <div class="keys">4</div>
+                                <div class="keys_name_2">Lettuce</div>
+                            </div>
+                            <div class="click_div" id="button_7">
+                                <div class="keys">7</div>
+                                <div class="keys_name_3">Plate</div>
+                            </div>
+                            <div class="click_div" id="button_10">
+                                <div class="keys">=</div>
+                                <div class="keys_name_4">Good Job!</div>
+                            </div>
+
+                        </div>
+                        <div class="instruction_div">
+                            <div class="click_div" id="button_2">
+                                <div class="keys">2</div>
+                                <div class="keys_name_1">BeefBurger</div>
+                            </div>
+                            <div class="click_div" id="button_5">
+                                <div class="keys">5</div>
+                                <div class="keys_name_2">Beef</div>
+                            </div>
+                            <div class="click_div" id="button_8">
+                                <div class="keys">8</div>
+                                <div class="keys_name_3">Serve</div>
+                            </div>
+                            <div class="click_div" id="button_11">
+                                <div class="keys">-</div>
+                                <div class="keys_name_4">Need Improvement</div>
+                            </div>
+
+
+
+                        </div>
+                        <div class="instruction_div">
+                            <div class="click_div" id="button_3">
+                                <div class="keys">3</div>
+                                <div class="keys_name_1">BeefLettuceBurger</div>
+                            </div>
+                            <div class="click_div" id="button_6">
+                                <div class="keys">6</div>
+                                <div class="keys_name_2">Bread</div>
+                            </div>
+                            <div class="click_div" id="button_9">
+                                <div class="keys">9</div>
+                                <div class="keys_name_3">Fire</div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+
+        function getDomData() {
+            var userInfo = JSON.parse(sessionStorage.getItem('before_game')) || {}
+            var gamephase = sessionStorage.getItem('gamephase')
+            var params = {
+                name: userInfo.name,
+                phone: userInfo.phone,
+                gamephase: gamephase,
+            }
+            console.log('params', params)
+            return params
+        }
+        var userInfo = sessionStorage.getItem('before_game')
+        if (!userInfo) {
+            // window.location.href = "/html/before_game"
+            window.location.href = "/html/statement";
+        }
+        else {
+
+            // console.log(userInfo)
+            var canvasWidth = 720;
+            var canvasHeight = 600;
+
+            var canvasElement = document.createElement('canvas');
+            canvasElement.width = canvasWidth;
+            canvasElement.height = canvasHeight;
+            document.getElementById('game-canvas').appendChild(canvasElement);
+            var context = canvasElement.getContext('2d');
+
+            var image = new Image()
+
+            image.onload = function () {
+                console.log('onload')
+
+                const scaleFactor = 4 / 3;
+                const targetWidth = image.width * scaleFactor;
+                const targetHeight = image.height * scaleFactor;
+
+
+                context.drawImage(image, 0, 0, targetWidth, targetHeight);
+            }
+
+
+            // console.log('hello')
+            // var ID = sessionStorage.getItem('agentID')
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/getsettings", false); // false for synchronous
+            // xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(userInfo);
+            var response = JSON.parse(xhr.response);
+            var agentID = response['agentid'];
+            var trajname = response['trajname'];
+            var exp_type = response['type'];
+            var game_sequence_idx = response["game_sequence_idx"];
+            var time = response["max_steps"];
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", '/' + agentID + '/getphase', false);
+            xhr.send(userInfo);
+            var response = JSON.parse(xhr.response);
+            var gamephase = response['gamephase'];
+            var lastphase = response['lastphase'];
+            var maxphase = response['maxphase'];
+            var to_questionnaire = response['to_questionnaire'];
+            console.log(response)
+            console.log("gamephase", gamephase)
+            console.log("lastphase", lastphase)
+            console.log("maxphase", maxphase)
+            console.log("to_questionnaire", to_questionnaire)
+
+            if (gamephase == -1) {
+                document.getElementById('trail_info').style = "font-size: larger; display: content"
+                document.getElementById('partner_color').style = "font-size: larger; display: none"
+            }
+            else if (gamephase == 0) {
+                document.getElementById('human_test').style = "font-size: larger; display: content"
+                document.getElementById('partner_color').style = "font-size: larger; display: none"
+            }
+            else if (gamephase > 6) {
+                document.getElementById('idx3').style = "color: rgb(68, 153, 113); display: content;"
+                document.getElementById('main_game').style = "font-size: larger; display: content"
+                document.getElementById('game_id').innerText = game_sequence_idx;
+                document.getElementById('max_id').innerText = maxphase;
+            }
+            else if (gamephase > 4) {
+                document.getElementById('idx2').style = "color: #da4bd2; display: content;"
+                document.getElementById('main_game').style = "font-size: larger; display: content"
+                document.getElementById('game_id').innerText = game_sequence_idx;
+                document.getElementById('max_id').innerText = maxphase;
+            }
+            else if (gamephase > 2) {
+                document.getElementById('idx1').style = "color: #dc742a; display: content;"
+                document.getElementById('main_game').style = "font-size: larger; display: content"
+                document.getElementById('game_id').innerText = game_sequence_idx;
+                document.getElementById('max_id').innerText = maxphase;
+            }
+            else if (gamephase >= 1) {
+                document.getElementById('idx0').style = "color: #c30000; display: content;"
+                document.getElementById('main_game').style = "font-size: larger; display: content"
+                document.getElementById('game_id').innerText = game_sequence_idx;
+                document.getElementById('max_id').innerText = maxphase;
+            }
+            else if (gamephase == null) {
+                alert("You have finished the experiment.")
+                window.location.href = "/html/info_confirm";
+            }
+            // document.getElementById('index').innerText = agentID;
+            // if (agentID % 2 == 0) {
+            //     document.getElementById('idx0').style = "color: #1c70ca; display: content;"
+            // } else {
+            //     document.getElementById('idx1').style = "color: rgb(68, 153, 113); display: content;"
+            // }
+
+            // console.log(agentID);
+            // console.log(trajname);
+            // console.log('trajname')
+            sessionStorage.setItem('agentID', agentID)
+            sessionStorage.setItem('trajname', trajname)
+            sessionStorage.setItem('exptype', exp_type)
+            sessionStorage.setItem('gamephase', gamephase)
+            sessionStorage.setItem('lastphase', lastphase)
+            // console.log(trajname)
+            domData = getDomData();
+            domData['traj_id'] = trajname;
+            console.log(domData)
+
+            if (to_questionnaire) {
+                alert("You have finished this round, please fill in the questionnaire.")
+                window.location.href = "/html/in_game";
+            }
+
+            if (exp_type == 'A') {
+                document.getElementById('key_instruction').style = "display: none"
+            } else if (exp_type == 'N') {
+                document.getElementById('communication').style = "display: none"
+            }
+
+            // sessionStorage.setItem("")
+
+            var websocket = new WebSocket(
+                "ws://" + window.location.hostname + ":63000/" + agentID + "/connect"
+            );// var socket = io.connect();
+            websocket.onmessage = function (msg) {
+                // console.log(msg)
+                // console.log(msg.data)
+                const data = JSON.parse(msg.data);
+                const imgData = data['frame'];
+                const dataUrl = 'data:image/png;base64,' + imgData;
+
+                communication_info_div = document.getElementById('communication_info')
+                communication_info_div.innerHTML = ""
+                // console.log(data['info_list'])
+
+                for (var i = 0; i < data['info_list'].length; i++) {
+                    info_div = document.createElement('div')
+                    info_div.setAttribute('class', 'info_div')
+                    timestep_div = document.createElement('div')
+                    timestep_div.setAttribute('class', 'timestep_div')
+                    timestep_div.innerHTML = data['info_list'][i][3]
+                    tiny_div = document.createElement('div')
+                    tiny_div.setAttribute('class', 'tiny_div')
+
+                    if (data['info_list'][i][0] == 'human') {
+                        tiny_div.setAttribute('class', 'human_tiny_div')
+                        tiny_div.innerHTML = data['info_list'][i][1] + ", " + data['info_list'][i][2]
+                        character_div = document.createElement('div')
+                        character_div.setAttribute('class', 'human_character_div')
+                        character_div.innerHTML = "You"
+                        // console.log(character_div)
+                        info_div.appendChild(tiny_div)
+                        info_div.appendChild(character_div)
+
+                    } else {
+                        tiny_div.setAttribute('class', 'agent_tiny_div')
+                        tiny_div.innerHTML = data['info_list'][i][1] + ", " + data['info_list'][i][2]
+                        character_div = document.createElement('div')
+                        character_div.setAttribute('class', 'agent_character_div')
+                        character_div.innerHTML = "Agent"
+                        // console.log(character_div)
+                        info_div.appendChild(character_div)
+                        info_div.appendChild(tiny_div)
+                    }
+                    // info_div.appendChild(timestep_div)
+                    communication_info_div.appendChild(info_div)
+                }
+                communication_info_div.scrollTop = communication_info_div.scrollHeight;
+
+
+                if (data['time'] != time) {
+                    document.getElementById("wait").style = "display:none"
+                }
+                image.src = dataUrl;
+                console.log(data['time'])
+                if (data['time'] == 0) {
+                    if (gamephase == -1) {
+                        alert("Trail game finished, the experiment will start.")
+                        alert("The next experiment measures how well you play this game.")
+                    }
+                    else {
+                        alert("Game finished.")
+                    }
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/save_traj_info", false); // false for synchronous
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify(domData));
+                    websocket.close();
+                    window.location.href = "/html/in_game"
+                }
+            }
+
+            for (var i = 1; i < 12; i++) {
+                button = document.getElementById('button_' + i)
+                button.addEventListener('click', function () {
+                    var action = 0
+                    var instruction = 0
+                    var feedback = 0
+                    switch (this.id) {
+                        case 'button_1':
+                            instruction = 1
+                            break;
+                        case 'button_2':
+                            instruction = 2
+                            break;
+                        case 'button_3':
+                            instruction = 3
+                            break;
+                        case 'button_4':
+                            instruction = 4
+                            break;
+                        case 'button_5':
+                            instruction = 5
+                            break;
+                        case 'button_6':
+                            instruction = 6
+                            break;
+                        case 'button_7':
+                            instruction = 7
+                            break;
+                        case 'button_8':
+                            instruction = 8
+                            break;
+                        case 'button_9':
+                            instruction = 9
+                            break;
+                        case 'button_10':
+                            feedback = 1
+                            break;
+                        case 'button_11':
+                            feedback = 2
+                            break;
+                        default: break
+                    }
+                    if (instruction != 0 || feedback != 0) {
+                        // console.log(`${action} ${instruction} ${feedback}`);
+                        websocket.send(`${action} ${instruction} ${feedback}`);
+                    }
+                })
+            }
+
+
+            document.addEventListener('keydown', function (e) {
+                var action = 0
+                var instruction = 0
+                var feedback = 0
+                // AGENT_ACTIONS: 0: Noop, 1: Left, 2: right, 3: down, 4: up, 5: interact
+                switch (e.key) {
+                    case 'a': // left (A)
+                    case 'A': // left (A)
+                    case 'ArrowLeft': // left arrow key
+                        action = 1;
+                        break;
+                    case 'w': // up (W)
+                    case 'W': // up (W)
+                    case 'ArrowUp': // up arrow key
+                        action = 4;
+                        break;
+                    case 'd': // right (D)
+                    case 'D': // right (D)
+                    case 'ArrowRight': // right arrow key
+                        action = 2;
+                        break;
+                    case 's': // down (S)
+                    case 'S': // down (S)
+                    case 'ArrowDown': // down arrow key
+                        action = 3;
+                        break;
+                    case ' ':
+                    case 'Spacebar':
+                        action = 5;
+                        break;
+                    case '1':
+                        instruction = 1
+                        break;
+                    case '2':
+                        instruction = 2
+                        break;
+                    case '3':
+                        instruction = 3
+                        break;
+                    case '4':
+                        instruction = 4
+                        break;
+                    case '5':
+                        instruction = 5
+                        break;
+                    case '6':
+                        instruction = 6
+                        break;
+                    case '7':
+                        instruction = 7
+                        break;
+                    case '8':
+                        instruction = 8
+                        break;
+                    case '9':
+                        instruction = 9
+                        break;
+                    case '=':
+                        feedback = 1
+                        break;
+                    case '-':
+                        feedback = 2
+                        break;
+
+                    default: break
+                }
+                if (action != 0 || instruction != 0 || feedback != 0) {
+                    websocket.send(`${action} ${instruction} ${feedback}`);
+                }
+            });
+            window.addEventListener("beforeunload", function () {
+
+                console.log('beforeunload')
+                websocket.close();
+            });
+
+            window.addEventListener("unload", function () {
+
+                console.log('unload')
+                websocket.close();
+            });
+        }
+
+    </script>
+</body>
+
+</html>

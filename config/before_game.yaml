@@ -1,0 +1,9 @@
+name: True
+email: False
+phone: True
+age: True
+gender: True
+is_played: True
+id: True
+gameskill: False
+level: False
