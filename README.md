@@ -3,6 +3,14 @@ This is the official implementation of paper ["Leveraging Dual Process Theory in
 
 ![Image 1](assets/framework.png)
 
+# Results
+
+![Exp1](assets/exp1.png)
+
+![Exp2](assets/exp2.png)
+
+# Usage
+
 ## Installation
 
 Create a new environment
