@@ -31,7 +31,7 @@ curl --location 'http://127.0.0.1:40000/health' -H "Authorization: Bearer sk-123
 ```
 
 
-#### Run LLM as Indenpendent System 1 and System 2 Experiments
+### Run LLM as Indenpendent System 1 and System 2 Experiments
 For single agent exp, first change the config/envs/overcooked.yaml
 
 ```
@@ -44,7 +44,7 @@ Then run:
 sh scripts/exp0/openai.sh
 ```
 
-#### Run Single Agent Experiments
+### Run Single Agent Experiments
 For single agent exp, first change the config/envs/overcooked.yaml
 
 ```
@@ -57,7 +57,7 @@ Then run:
 sh scripts/exp1/openai.sh
 ```
 
-#### Run Collaboration Experiments with Rule-baed Agents
+### Run Collaboration Experiments with Rule-baed Agents
 For collaboration exp, first change the config/envs/overcooked.yaml
 
 ```
@@ -70,7 +70,7 @@ Then run:
 sh scripts/exp2/openai.sh
 ```
 
-#### Run Human Experiment
+### Run Human Experiment
 For use map 2, change the config/envs/overcooked.yaml
 ```
 mode: burger_aa_new
@@ -83,7 +83,7 @@ sh scripts/overcooked/human_llm_app.sh
 ```
 Then open the website http://localhost:5001
 
-#### Help
+### Help
 For more information, please run
 
 ```shell
@@ -105,7 +105,7 @@ pre-commit run --all-files
 # or it will automatically run when you try to commit, which is slow and seems stuck.
 ```
 
-# Cite
+## Cite
 ```
 @misc{zhang2025ldpt,
       title={Leveraging Dual Process Theory in Language Agent Framework for Real-time Simultaneous Human-AI Collaboration}, 
