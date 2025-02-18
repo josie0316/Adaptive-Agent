@@ -1,5 +1,5 @@
 # DPT-Agent
-This is the official implementation of paper "Leveraging Dual Process Theory in Language Agent Framework for Simultaneous Human-AI Collaboration."
+This is the official implementation of paper ["Leveraging Dual Process Theory in Language Agent Framework for Simultaneous Human-AI Collaboration."](https://arxiv.org/abs/2502.11882)
 
 ![Image 1](assets/framework.png)
 
@@ -103,4 +103,17 @@ pre-commit install
 pre-commit run --all-files
 
 # or it will automatically run when you try to commit, which is slow and seems stuck.
+```
+
+# Cite
+```
+@misc{zhang2025ldpt,
+      title={Leveraging Dual Process Theory in Language Agent Framework for Real-time Simultaneous Human-AI Collaboration}, 
+      author={Shao Zhang and Xihuai Wang and Wenhao Zhang and Chaoran Li and Junru Song and Tingyu Li and Lin Qiu and Xuezhi Cao and Xunliang Cai and Wen Yao and Weinan Zhang and Xinbing Wang and Ying Wen},
+      year={2025},
+      eprint={2502.11882},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2502.11882}, 
+}
 ```
