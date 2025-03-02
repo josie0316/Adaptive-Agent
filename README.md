@@ -3,6 +3,10 @@ This is the official implementation of paper ["Leveraging Dual Process Theory in
 
 ![Image 1](assets/framework.png)
 
+# Overcooked Challenge
+
+![layout](assets/overcooked.png)
+
 # Results
 
 ![Exp1](assets/exp1.png)
