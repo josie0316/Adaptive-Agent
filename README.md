@@ -1,11 +1,26 @@
 # DPT-Agent
 This is the official implementation of paper ["Leveraging Dual Process Theory in Language Agent Framework for Simultaneous Human-AI Collaboration."](https://arxiv.org/abs/2502.11882)
 
-![Image 1](assets/framework.png)
+![image](assets/intro.png)
+
+<p align="center">
+  📄 <a href="https://arxiv.org/pdf/2502.11882" target="_blank">Paper</a> &nbsp; | &nbsp;
+  🌐 <a href="https://sjtu-marl.github.io/DPT-Agent-page/" target="_blank">Website</a> &nbsp; | &nbsp;
+  📘 <a href="https://mp.weixin.qq.com/s/dT9KQmebVJX0ewkzJmisPg" target="_blank">机器之心</a> &nbsp; | &nbsp;
+  🧪 <a href="https://agi-eval.cn/evaluation/Overcooked%20Challenge:%20Real-time%20Simultaneous%20Human-AI%20Collaboration%20in%20Overcooked%20for%20LLM%20Agents%20Evaluation?id=56" target="_blank">AGI-Eval</a>
+</p>
+
+## 🔥News
+
+- [2025/03/18] Our work is featured by [机器之心](https://mp.weixin.qq.com/s/dT9KQmebVJX0ewkzJmisPg) on Wechat!
+- [2025/03/06] We have established a partnership with [AGI-Eval](https://agi-eval.cn/mvp/home) platform. All text-based subsets of OlympicArena are now available on [AGI-Eval-Overcooked Challenge](https://agi-eval.cn/evaluation/Overcooked%20Challenge:%20Real-time%20Simultaneous%20Human-AI%20Collaboration%20in%20Overcooked%20for%20LLM%20Agents%20Evaluation?id=56). 
+
 
 # Overcooked Challenge
-
 ![layout](assets/overcooked.png)
+
+# DPT-Agent Framework
+![Image 1](assets/framework.png)
 
 # Results
 
