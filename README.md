@@ -7,7 +7,7 @@ This is the official implementation of paper ["Leveraging Dual Process Theory in
   📄 <a href="https://arxiv.org/pdf/2502.11882" target="_blank">Paper</a> &nbsp; | &nbsp;
   🌐 <a href="https://sjtu-marl.github.io/DPT-Agent-page/" target="_blank">Website</a> &nbsp; | &nbsp;
   📘 <a href="https://mp.weixin.qq.com/s/dT9KQmebVJX0ewkzJmisPg" target="_blank">机器之心</a> &nbsp; | &nbsp;
-  🧪 <a href="https://agi-eval.cn/evaluation/Overcooked%20Challenge:%20Real-time%20Simultaneous%20Human-AI%20Collaboration%20in%20Overcooked%20for%20LLM%20Agents%20Evaluation?id=56" target="_blank">AGI-Eval</a>
+  🧪 <a href="https://agi-eval.cn/evaluation/detail?id=56" target="_blank">AGI-Eval</a>
 </p>
 
 ## 🔥News
