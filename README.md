@@ -12,6 +12,7 @@ This is the official implementation of paper ["Leveraging Dual Process Theory in
 
 ## 🔥News
 
+- [2025/05/16] The DPT-agent paper has been accepted by ACL 2025!
 - [2025/03/18] Our work is featured by [机器之心](https://mp.weixin.qq.com/s/dT9KQmebVJX0ewkzJmisPg) on Wechat!
 - [2025/03/06] We have established a partnership with [AGI-Eval](https://agi-eval.cn/mvp/home) platform. The benchmark results of Overcooked Challenge are now available on [AGI-Eval-Overcooked Challenge](https://agi-eval.cn/evaluation/Overcooked%20Challenge:%20Real-time%20Simultaneous%20Human-AI%20Collaboration%20in%20Overcooked%20for%20LLM%20Agents%20Evaluation?id=56). 
 
