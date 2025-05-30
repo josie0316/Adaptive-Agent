@@ -1,5 +1,5 @@
 # DPT-Agent
-This is the official implementation of paper ["Leveraging Dual Process Theory in Language Agent Framework for Simultaneous Human-AI Collaboration."](https://arxiv.org/abs/2502.11882)
+This is the official implementation of paper ["Leveraging Dual Process Theory in Language Agent Framework for Simultaneous Human-AI Collaboration"](https://arxiv.org/abs/2502.11882) accepted by ACL 2025 Main.
 
 ![image](assets/intro.png)
 
