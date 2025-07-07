@@ -49,18 +49,28 @@ HUMAN_INPUT_LOCK = asyncio.Lock()
 EXPERIMENT_TYPE = 3
 TYPE_TO_NAME = {0: "HA", 1: "H", 2: "A", 3: "N"}
 
+# PHASE_2_AGENT = {
+#    -1: "warmup",
+#    0: "trail",
+#    1: "react",
+#    2: "react",
+#    3: "reflexion",
+#    4: "reflexion",
+#    5: "wtom",
+#    6: "wtom",
+#    7: "wotom",
+#    8: "wotom",
+#}
+
 PHASE_2_AGENT = {
     -1: "warmup",
     0: "trail",
-    1: "react",
-    2: "react",
-    3: "reflexion",
-    4: "reflexion",
     5: "wtom",
     6: "wtom",
-    7: "wotom",
-    8: "wotom",
+    7: "wtom",
+    8: "wtom",
 }
+
 
 if EXPERIMENT_TYPE == 0:
     SEND_MESSAGE = True
@@ -785,14 +795,15 @@ async def getsettings():
 
                 game_phases[agent_id] = -1
                 # tmp_seq = [i for i in range(1, MAX_PHASE + 1)]
-                agent_seq = [i for i in range(MAX_PHASE // 2)]
-                random.shuffle(agent_seq)
-                tmp_seq = []
-                for item in agent_seq:
-                    tmp_seq.append(item * 2 + 1)
-                    tmp_seq.append(item * 2 + 2)
-                logger.info(tmp_seq)
-                tmp_seq = [0] + tmp_seq
+                # agent_seq = [i for i in range(MAX_PHASE // 2)]
+                # random.shuffle(agent_seq)
+                #tmp_seq = []
+                #for item in agent_seq:
+                #    tmp_seq.append(item * 2 + 1)
+                #    tmp_seq.append(item * 2 + 2)
+                # logger.info(tmp_seq)
+                # tmp_seq = [0] + tmp_seq
+                tmp_seq = [0, 5, 6, 7, 8]
                 game_sequence[agent_id] = iter(tmp_seq)
                 last_phases[agent_id] = tmp_seq[-1]
 
