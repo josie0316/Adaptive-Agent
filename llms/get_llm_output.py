@@ -1,15 +1,16 @@
 import re
-
+import os
 import backoff
 import openai
 from loguru import logger
 
-openai_client = openai.AsyncOpenAI(base_url="http://localhost:40000", api_key="sk-1234")
+openai_client = openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 valid_models = [
     "4o-mini",
     "4o",
     "o3-mini-low",
+    "gpt-3.5-turbo",
 ]
 
 

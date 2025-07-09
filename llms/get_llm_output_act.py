@@ -12,6 +12,7 @@ valid_models = [
     "4o-mini",
     "4o",
     "o3-mini",
+    "gpt-3.5-turbo",
 ]
 
 

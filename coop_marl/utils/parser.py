@@ -53,7 +53,7 @@ def create_parser():
         "-m",
         default="4o-mini",
         type=str,
-        choices=valid_models,
+        # choices=valid_models,  # Remove this line to allow any model name
     )
     parser.add_argument("--fsm", action="store_true")
     parser.add_argument("--no-model", action="store_true")
