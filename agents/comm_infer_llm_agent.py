@@ -29,7 +29,7 @@ class CommInferAgent(RuleAgent):
     Conversation-based Inference Agent
     """
 
-    MESSAGE_TEMPLATE = "I am working on the {orders} order(s), and I am {action_str}."
+    # MESSAGE_TEMPLATE = "I am working on the {orders} order(s), and I am {action_str}."
 
     def __init__(
         self,
@@ -55,31 +55,57 @@ class CommInferAgent(RuleAgent):
 
         self.text_assign_tasks = []
 
-    def get_action(self, json_state: Dict) -> Tuple[str | Dict]:
+    def get_action(self, json_state: Dict) -> Tuple[str, Dict] | None:
         self.action_in_progress = super().get_action(json_state)
         return self.action_in_progress
 
+    def get_partner_task_message(self, json_state: Dict) -> str:
+        """
+        Generate a task assignment message for the partner based on current game state.
+        Returns a message like "Can you prepare Lettuce?" or an empty string if no assignment needed.
+        """
+        orders = json_state.get("orders", [])
+        objects = json_state.get("objects", {})
+        partner_inventory = json_state.get("inventory_other_player", {})
+        pending_tasks = []
+        for order in orders:
+            order_name = order.get("name", "")
+            if order_name == "LettuceBurger":
+                if objects.get(("Lettuce", "Chopped"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Lettuce", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+            elif order_name == "BeefBurger":
+                if objects.get(("Beef", "Well-cooked"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Beef", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+            elif order_name == "BeefLettuceBurger":
+                if objects.get(("Beef", "Well-cooked"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Beef", "priority": 1})
+                if objects.get(("Lettuce", "Chopped"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Lettuce", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+        if objects.get(("Fire", ""), 0) > 0:
+            return "Can you put out the fire?"
+        partner_busy = any(inventory is not None for inventory in partner_inventory.values())
+        if partner_busy:
+            return ""
+        pending_tasks.sort(key=lambda x: x["priority"])
+        if pending_tasks:
+            task = pending_tasks[0]
+            return f"Can you {task['action']} {task['item']}?"
+        if objects.get(("Plate", "Empty"), 0) == 0:
+            return "Can you get a Plate?"
+        return ""
+
     def get_message(self, json_state: Dict) -> str:
-        def _action_str(action: Union[Tuple[str, Dict], None]) -> str:
-            if action is None:
-                return "not doing anything"
-            if action[0] == "prepare":
-                return f"preparing {action[1]['food']}"
-            elif action[0] == "assemble":
-                return f"assembling {action[1]['food']}"
-            elif action[0] == "pass_on":
-                return f"passing on a {action[1]['thing']} over the center counter"
-            elif action[0] == "serve":
-                return f"serving the {action[1]['food']} to the customer"
-            elif action[0] == "putout_fire":
-                return "putting out the fire"
-
-        def _order_str(orders: List[Dict]) -> str:
-            return ", ".join(orders) if orders else "no specific"
-
-        return self.MESSAGE_TEMPLATE.format(
-            orders=_order_str(self.order_in_progress), action_str=_action_str(self.action_in_progress)
-        )
+        partner_message = self.get_partner_task_message(json_state)
+        if partner_message:
+            return partner_message
+        # Return empty string instead of using the old template
+        return ""
 
     def get_llm_input(self, history: str, assigned_tasks: bool = True) -> str:
         llm_input = f"""\
@@ -296,7 +322,7 @@ class CommInferAgentNoFSM(RuleAgentNoFSM):
     Conversation-based Inference Agent
     """
 
-    MESSAGE_TEMPLATE = "I am working on the {orders} order(s), and I am {action_str}."
+    # MESSAGE_TEMPLATE = "I am working on the {orders} order(s), and I am {action_str}."
 
     def __init__(
         self,
@@ -322,31 +348,57 @@ class CommInferAgentNoFSM(RuleAgentNoFSM):
 
         self.text_assign_tasks = []
 
-    def get_action(self, json_state: Dict) -> Tuple[str | Dict]:
+    def get_action(self, json_state: Dict) -> Tuple[str, Dict] | None:
         self.action_in_progress = super().get_action(json_state)
         return self.action_in_progress
 
+    def get_partner_task_message(self, json_state: Dict) -> str:
+        """
+        Generate a task assignment message for the partner based on current game state.
+        Returns a message like "Can you prepare Lettuce?" or an empty string if no assignment needed.
+        """
+        orders = json_state.get("orders", [])
+        objects = json_state.get("objects", {})
+        partner_inventory = json_state.get("inventory_other_player", {})
+        pending_tasks = []
+        for order in orders:
+            order_name = order.get("name", "")
+            if order_name == "LettuceBurger":
+                if objects.get(("Lettuce", "Chopped"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Lettuce", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+            elif order_name == "BeefBurger":
+                if objects.get(("Beef", "Well-cooked"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Beef", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+            elif order_name == "BeefLettuceBurger":
+                if objects.get(("Beef", "Well-cooked"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Beef", "priority": 1})
+                if objects.get(("Lettuce", "Chopped"), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Lettuce", "priority": 1})
+                if objects.get(("Bread", ""), 0) == 0:
+                    pending_tasks.append({"action": "prepare", "item": "Bread", "priority": 2})
+        if objects.get(("Fire", ""), 0) > 0:
+            return "Can you put out the fire?"
+        partner_busy = any(inventory is not None for inventory in partner_inventory.values())
+        if partner_busy:
+            return ""
+        pending_tasks.sort(key=lambda x: x["priority"])
+        if pending_tasks:
+            task = pending_tasks[0]
+            return f"Can you {task['action']} {task['item']}?"
+        if objects.get(("Plate", "Empty"), 0) == 0:
+            return "Can you get a Plate?"
+        return ""
+
     def get_message(self, json_state: Dict) -> str:
-        def _action_str(action: Union[Tuple[str, Dict], None]) -> str:
-            if action is None:
-                return "not doing anything"
-            if action[0] == "prepare":
-                return f"preparing {action[1]['food']}"
-            elif action[0] == "assemble":
-                return f"assembling {action[1]['food']}"
-            elif action[0] == "pass_on":
-                return f"passing on a {action[1]['thing']} over the center counter"
-            elif action[0] == "serve":
-                return f"serving the {action[1]['food']} to the customer"
-            elif action[0] == "putout_fire":
-                return "putting out the fire"
-
-        def _order_str(orders: List[Dict]) -> str:
-            return ", ".join(orders) if orders else "no specific"
-
-        return self.MESSAGE_TEMPLATE.format(
-            orders=_order_str(self.order_in_progress), action_str=_action_str(self.action_in_progress)
-        )
+        partner_message = self.get_partner_task_message(json_state)
+        if partner_message:
+            return partner_message
+        # Return empty string instead of using the old template
+        return ""
 
     def get_llm_input(self, history: str, assigned_tasks: bool = True) -> str:
         llm_input = f"""\

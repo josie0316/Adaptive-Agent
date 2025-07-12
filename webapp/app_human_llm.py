@@ -174,7 +174,9 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
                         if PHASE_2_AGENT[game_phases[id]] == "reflexion":
                             to_reflections[id] = rule_agents[id].to_reflection(json_state_simple)
                         try:
-                            mid_actions[id] = rule_agents[id].get_action(json_state_simple)
+                            action_result = rule_agents[id].get_action(json_state_simple)
+                            logger.debug(f"Agent {type(rule_agents[id]).__name__} returned: {action_result} (type: {type(action_result)})")
+                            mid_actions[id] = action_result
                         except Exception as e:
                             logger.error(e)
                             mid_actions[id] = None
