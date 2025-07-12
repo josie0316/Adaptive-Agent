@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+,<!DOCTYPE html>
 <html>
 
 <head>
@@ -196,6 +196,20 @@
         background-color: #fff2df;
         cursor: pointer;
     }
+    
+    .mode_btn {
+        transition: all 0.3s ease;
+    }
+    
+    .mode_btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .mode_btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
 </style>
 
 <body>
@@ -228,6 +242,27 @@
             <span>You are waiting for the game to start, Refresh your web. <br>30，。
             </span>
         </div>
+        
+        <!-- Mode Switch Button (only for phases 9 and 10) -->
+        <div id="mode_switch_container" style="display: none; margin: 10px 0;">
+            <div style="font-size: larger; margin-bottom: 10px;">
+                <strong>Agent Control Mode:</strong>
+                <span id="current_mode" style="color: #007bff; font-weight: bold;">AI-led</span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="ai_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #007bff; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                    AI-led Mode
+                </button>
+                <button id="human_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #28a745; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                    Human-led Mode
+                </button>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
+                <div>AI-led: Agent sends instructions to you</div>
+                <div>Human-led: You send instructions to agent</div>
+            </div>
+        </div>
+        
         <br>
         <br>
         <div id="main-game" style="display: flex; flex-direction: row;">
@@ -419,6 +454,11 @@
                 document.getElementById('game_id').innerText = game_sequence_idx;
                 document.getElementById('max_id').innerText = maxphase;
             }
+            
+            // Show mode switch button only for phases 9, 10, 11, 12
+            if (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12) {
+                document.getElementById('mode_switch_container').style.display = "block";
+            }
             else if (gamephase == null) {
                 alert("You have finished the experiment.")
                 window.location.href = "/html/info_confirm";
@@ -504,6 +544,25 @@
                 }
                 communication_info_div.scrollTop = communication_info_div.scrollHeight;
 
+                // Update mode display if available
+                if (data['agent_mode']) {
+                    const mode = data['agent_mode'];
+                    if (mode === 'ai_led') {
+                        document.getElementById('current_mode').innerText = "AI-led";
+                        document.getElementById('current_mode').style.color = "#007bff";
+                        document.getElementById('ai_led_btn').style.backgroundColor = "#007bff";
+                        document.getElementById('ai_led_btn').style.borderColor = "#007bff";
+                        document.getElementById('human_led_btn').style.backgroundColor = "#6c757d";
+                        document.getElementById('human_led_btn').style.borderColor = "#6c757d";
+                    } else if (mode === 'human_led') {
+                        document.getElementById('current_mode').innerText = "Human-led";
+                        document.getElementById('current_mode').style.color = "#28a745";
+                        document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
+                        document.getElementById('human_led_btn').style.borderColor = "#28a745";
+                        document.getElementById('ai_led_btn').style.backgroundColor = "#6c757d";
+                        document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
+                    }
+                }
 
                 if (data['time'] != time) {
                     document.getElementById("wait").style = "display:none"
@@ -655,6 +714,89 @@
                 websocket.close();
             });
 
+            // Add popup modal for fake button (phases 11, 12)
+            var fakeButtonModal = document.createElement('div');
+            fakeButtonModal.id = 'fakeButtonModal';
+            fakeButtonModal.style.display = 'none';
+            fakeButtonModal.style.position = 'fixed';
+            fakeButtonModal.style.left = '0';
+            fakeButtonModal.style.top = '0';
+            fakeButtonModal.style.width = '100vw';
+            fakeButtonModal.style.height = '100vh';
+            fakeButtonModal.style.background = 'rgba(0,0,0,0.3)';
+            fakeButtonModal.style.zIndex = '1000';
+            fakeButtonModal.innerHTML = `
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:24px 32px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.2);min-width:300px;">
+                    <div style="font-size:16px;margin-bottom:10px;">Why do you press the button?</div>
+                    <input id="fakeButtonReason" type="text" style="width:100%;padding:6px 8px;margin-bottom:10px;" placeholder="Your answer..." />
+                    <button id="fakeButtonSubmit" style="padding:6px 18px;">Submit</button>
+                    <button id="fakeButtonCancel" style="padding:6px 18px;margin-left:10px;">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(fakeButtonModal);
+
+            function showFakeButtonModal() {
+                document.getElementById('fakeButtonReason').value = '';
+                fakeButtonModal.style.display = 'block';
+            }
+            function hideFakeButtonModal() {
+                fakeButtonModal.style.display = 'none';
+            }
+            document.getElementById('fakeButtonSubmit').onclick = function() {
+                const reason = document.getElementById('fakeButtonReason').value;
+                // Send to backend
+                fetch('/log_fake_button_press', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: userInfo ? JSON.parse(userInfo).name : '',
+                        phone: userInfo ? JSON.parse(userInfo).phone : '',
+                        gamephase: gamephase,
+                        reason: reason,
+                        timestamp: Date.now()
+                    })
+                });
+                hideFakeButtonModal();
+                alert('Thank you for your feedback!');
+            };
+            document.getElementById('fakeButtonCancel').onclick = function() {
+                hideFakeButtonModal();
+            };
+
+            // Mode switch button event listeners
+            document.getElementById('ai_led_btn').addEventListener('click', function() {
+                if (gamephase == 11 || gamephase == 12) {
+                    showFakeButtonModal();
+                    return;
+                }
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:ai_led");
+                    document.getElementById('current_mode').innerText = "AI-led";
+                    document.getElementById('current_mode').style.color = "#007bff";
+                    // Update button styles
+                    document.getElementById('ai_led_btn').style.backgroundColor = "#007bff";
+                    document.getElementById('ai_led_btn').style.borderColor = "#007bff";
+                    document.getElementById('human_led_btn').style.backgroundColor = "#6c757d";
+                    document.getElementById('human_led_btn').style.borderColor = "#6c757d";
+                }
+            });
+            
+            document.getElementById('human_led_btn').addEventListener('click', function() {
+                if (gamephase == 11 || gamephase == 12) {
+                    showFakeButtonModal();
+                    return;
+                }
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:human_led");
+                    document.getElementById('current_mode').innerText = "Human-led";
+                    document.getElementById('current_mode').style.color = "#28a745";
+                    // Update button styles
+                    document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
+                    document.getElementById('human_led_btn').style.borderColor = "#28a745";
+                    document.getElementById('ai_led_btn').style.backgroundColor = "#6c757d";
+                    document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
+                }
+            });
 
             window.addEventListener("unload", function () {
 

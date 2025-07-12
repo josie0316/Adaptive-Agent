@@ -17,6 +17,7 @@ from markdown import markdown
 from PIL import Image
 from quart import Quart, jsonify, request, websocket
 
+from agents.adaptive_dpt_agent import AdaptiveDPTAgent, AdaptiveDPTAgentNoFSM
 from agents.comm_infer_llm_agent import CommInferAgent, CommInferAgentNoFSM
 from agents.mid_agent import MidAgent
 from agents.react_llm_agent import ReActAgent, ReActAgentNoFSM
@@ -46,7 +47,7 @@ PROGRESS_EVENT = asyncio.Event()
 PROGRESS_LOCK = asyncio.Lock()
 HUMAN_INPUT_LOCK = asyncio.Lock()
 
-EXPERIMENT_TYPE = 3
+EXPERIMENT_TYPE = 0
 TYPE_TO_NAME = {0: "HA", 1: "H", 2: "A", 3: "N"}
 
 # PHASE_2_AGENT = {
@@ -62,13 +63,14 @@ TYPE_TO_NAME = {0: "HA", 1: "H", 2: "A", 3: "N"}
 #    8: "wotom",
 #}
 
+# 1. Register new agent for rounds 9, 10, 11, 12
 PHASE_2_AGENT = {
     -1: "warmup",
     0: "trail",
-    5: "wtom",
-    6: "wtom",
-    7: "wtom",
-    8: "wtom",
+    9: "adaptive_dpt",
+    10: "adaptive_dpt",
+    11: "adaptive_dpt",
+    12: "adaptive_dpt",
 }
 
 
@@ -266,7 +268,18 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
         frame = env.render(mode=render_mode)
         data = process_frame(frame)
 
+        # After agent acts, set agent message in AI-led mode
         if game_phases[id] > 0:
+            # Only set message if in AI-led mode and send_message is True
+            if rule_agents[id].mode == "ai_led" and rule_agents[id].send_message:
+                # Use the latest state for message
+                json_state_simple = envs[id].get_json_state_simple(llm_idxs[id])
+                new_message = rule_agents[id].get_message(json_state_simple)
+                if new_message != last_agent_message[id]:
+                    rule_agents[id].message = new_message
+                    last_agent_message[id] = new_message
+                else:
+                    rule_agents[id].message = ""
             if rule_agents[id].message:
                 info_list = update_info_list(info_list, "agent", rule_agents[id].message, info["player_0"]["t"])
                 current_traj_element["message"] = [(llm_idxs[id], rule_agents[id].message)]
@@ -280,6 +293,10 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
                     human_message = f"We need {INSTRUCTIONS[instructions[id]]}"
                 else:
                     human_message = "Fire!"
+
+                # Route human instruction to agent if in human-led mode
+                if rule_agents[id].mode == "human_led":
+                    rule_agents[id].receive_human_instruction(human_message)
 
                 info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
                 instructions[id] = 0
@@ -298,6 +315,7 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
             "time": _max_steps - info["player_0"]["t"],
             "score": total_score,
             "info_list": info_list,
+            "agent_mode": rule_agents[id].mode if rule_agents[id] is not None else "unknown",
         }
 
         updated[id] = True
@@ -432,6 +450,18 @@ async def startgame(id):
                             receive_message=RECEIVE_MESSAGE,
                             infer_human=True,
                         )
+                elif PHASE_2_AGENT[game_phases[id]] == "adaptive_dpt":
+                    # New agent for rounds 9-12
+                    # For phases 9 and 10, start with AI-led mode by default
+                    initial_mode = "ai_led" if game_phases[id] in [9, 10] else "ai_led"
+                    rule_agents[id] = AdaptiveDPTAgent(
+                        text_agents[id],
+                        envs[id]._env.unwrapped.world,
+                        initial_mode=initial_mode,
+                        send_message=SEND_MESSAGE,
+                        receive_message=RECEIVE_MESSAGE,
+                        infer_human=True,
+                    )
                 elif PHASE_2_AGENT[game_phases[id]] == "reflexion":
                     if FSM:
                         rule_agents[id] = ReflexionAgent(
@@ -698,13 +728,33 @@ async def receiving(id):
         recv = await websocket.receive()
         # logger.trace(action)
         async with HUMAN_INPUT_LOCK:
-            action, instruction, feedback = recv.split(" ")
-            if action != 0:
-                actions[id] = int(action)
-            if instruction != 0:
-                instructions[id] = int(instruction)
-            if feedback != 0:
-                feedbacks[id] = int(feedback)
+            # Check if this is a mode switch message
+            if recv.startswith("MODE_SWITCH:"):
+                mode = recv.split(":")[1].strip()
+                if mode in ["ai_led", "human_led"] and rule_agents[id] is not None:
+                    success = rule_agents[id].switch_mode(mode)
+                    if success:
+                        logger.info(f"Game {id}: Mode switched to {mode}")
+                        # Update experiment type based on mode
+                        if mode == "ai_led":
+                            # AI-led mode: agent sends messages, human receives
+                            rule_agents[id].send_message = True
+                            rule_agents[id].receive_message = False
+                        else:  # human_led
+                            # Human-led mode: human sends messages, agent receives
+                            rule_agents[id].send_message = False
+                            rule_agents[id].receive_message = True
+                    else:
+                        logger.warning(f"Game {id}: Failed to switch mode to {mode}")
+            else:
+                # Regular action/instruction/feedback message
+                action, instruction, feedback = recv.split(" ")
+                if action != 0:
+                    actions[id] = int(action)
+                if instruction != 0:
+                    instructions[id] = int(instruction)
+                if feedback != 0:
+                    feedbacks[id] = int(feedback)
         connection[id] = True
     logger.trace("end receiving")
 
@@ -794,16 +844,7 @@ async def getsettings():
                 id_name_phone_list[agent_id] = id_name_phone
 
                 game_phases[agent_id] = -1
-                # tmp_seq = [i for i in range(1, MAX_PHASE + 1)]
-                # agent_seq = [i for i in range(MAX_PHASE // 2)]
-                # random.shuffle(agent_seq)
-                #tmp_seq = []
-                #for item in agent_seq:
-                #    tmp_seq.append(item * 2 + 1)
-                #    tmp_seq.append(item * 2 + 2)
-                # logger.info(tmp_seq)
-                # tmp_seq = [0] + tmp_seq
-                tmp_seq = [0, 5, 6, 7, 8]
+                tmp_seq = [0, 9, 10, 11, 12]
                 game_sequence[agent_id] = iter(tmp_seq)
                 last_phases[agent_id] = tmp_seq[-1]
 
@@ -1013,6 +1054,9 @@ async def create_questionnaire_in_game():
     request_data = await request.get_data()
     data_json = json.loads(request_data)
     questionnaire_path = os.path.join(questionnaire_savepath, f"{data_json.get('name')}_{data_json.get('phone')}")
+    if not os.path.exists(f"{questionnaire_path}.json"):
+        with open(f"{questionnaire_path}.json", "w", encoding="utf-8") as f:
+            json.dump({}, f)
     with open(f"{questionnaire_path}.json", encoding="utf-8") as f:
         questionnaire = json.load(f)
     if "in_game" not in questionnaire.keys():
@@ -1024,6 +1068,8 @@ async def create_questionnaire_in_game():
     # filename = f"{traj_id}.json".replace(":", "_")
     phase = int(data_json["gamephase"])
     phase_key = f"phase_{phase}"
+    if phase_key not in in_game:
+        in_game[phase_key] = {}
 
     order = data_json["questionnaire"]
     order_keys = list(order.keys())
@@ -1033,12 +1079,16 @@ async def create_questionnaire_in_game():
         "1": "reflexion",
         "2": "wtom",
         "3": "wotom",
+        "4": "adaptive_dpt",
     }
     print(order)
     print(explicit_order)
     for order_key in order_keys:
-        for key in order[order_key].keys():
-            explicit_order[order_key][key_to_name[key]] = order[order_key][key]
+        for key in order[order_key]:
+            if key in key_to_name:
+                explicit_order[order_key][key_to_name[key]] = order[order_key][key]
+        else:
+            logger.warning(f"Key {key} not in key_to_name mapping, skipping.")
     if phase_key not in in_game.keys():
         logger.error(f"Phase {phase} not in in_game")
     else:
@@ -1082,6 +1132,20 @@ async def create_questionnaire_after_game():
     with open(f"{questionnaire_path}.json", "w", encoding="utf-8") as fw:
         json.dump(questionnaire, fw, ensure_ascii=False)
     return questionnaire
+
+
+@app.route("/log_fake_button_press", methods=["POST"])
+async def log_fake_button_press():
+    data = await request.get_json()
+    # You can save to a file, database, or just log it
+    log_path = "logs/fake_button_presses.jsonl"
+    import os
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as f:
+        import json
+        f.write(json.dumps(data, ensure_ascii=False) + "\n")
+    print(f"Fake button press logged: {data}")
+    return jsonify({"status": "ok"})
 
 
 @app.route("/")
@@ -1200,6 +1264,8 @@ if __name__ == "__main__":
     game_sequence = [None for _ in range(MAX_GAME)]
     last_phases = [0 for _ in range(MAX_GAME)]
     history_buffers = [History(max_steps=max_steps) for _ in range(MAX_GAME)]
+
+    last_agent_message = [None for _ in range(MAX_GAME)]
 
     if not os.path.exists(progress_savepath):
         os.makedirs(os.path.dirname(progress_savepath), exist_ok=True)
