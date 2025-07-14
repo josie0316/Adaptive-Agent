@@ -229,7 +229,24 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
 
         # env step
         traj_infos[id]["traj"].append(current_traj_element)
+        # Save state_before before env.step for order completion check
+        state_before = env.get_json_state_simple(llm_idxs[id])
         outcome, info = env.step(decision)
+        # Save state_after after env.step for order completion check
+        state_after = env.get_json_state_simple(llm_idxs[id])
+        # Check for order completion by deliver_log or total_score
+        deliver_log_before = state_before.get('deliver_log', [])
+        deliver_log_after = state_after.get('deliver_log', [])
+        total_score_before = state_before.get('total_score', 0.0)
+        total_score_after = state_after.get('total_score', 0.0)
+        # If a new order is delivered (deliver_log grows) or score increases, send 'good job'
+        if (len(deliver_log_after) > last_delivered_count[id]) or (total_score_after > last_total_score[id]):
+            logger.info("Order completed! Sending good job.")
+            info_list = update_info_list(info_list, "agent", "good job", info["player_0"]["t"])
+            current_traj_element["message"].append((llm_idxs[id], "good job"))
+        # Update last delivered count and score
+        last_delivered_count[id] = len(deliver_log_after)
+        last_total_score[id] = total_score_after
         logger.debug(f"""Timestep and score: {info["player_0"]["t"]}, {info["player_0"]["score"]}""")
         # total_score = sum(traj_infos[id]["score"])
         total_score = sum(ele["score"] for ele in traj_infos[id]["traj"])
@@ -272,21 +289,15 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
 
         # After agent acts, set agent message in AI-led mode
         if game_phases[id] > 0:
-            # Only set message if in AI-led mode and send_message is True
             if rule_agents[id].mode == "ai_led" and rule_agents[id].send_message:
-                # Use the latest state for message
                 json_state_simple = envs[id].get_json_state_simple(llm_idxs[id])
-                new_message = rule_agents[id].get_message(json_state_simple)
-                if new_message != last_agent_message[id]:
-                    rule_agents[id].message = new_message
-                    last_agent_message[id] = new_message
-                else:
-                    rule_agents[id].message = ""
-            if rule_agents[id].message:
-                info_list = update_info_list(info_list, "agent", rule_agents[id].message, info["player_0"]["t"])
-                current_traj_element["message"] = [(llm_idxs[id], rule_agents[id].message)]
-                rule_agents[id].message = ""
-
+                assignment = rule_agents[id].get_message(json_state_simple)
+                # Only send assignment if it's different from the last one sent
+                if assignment and assignment != last_sent_assignment[id]:
+                    logger.info(f"Send assignment: {assignment}")
+                    info_list = update_info_list(info_list, "agent", assignment, info["player_0"]["t"])
+                    current_traj_element["message"].append((llm_idxs[id], assignment))
+                    last_sent_assignment[id] = assignment
         human_message = ""
         async with HUMAN_INPUT_LOCK:
             if instructions[id] != 0:
@@ -1268,6 +1279,11 @@ if __name__ == "__main__":
     history_buffers = [History(max_steps=max_steps) for _ in range(MAX_GAME)]
 
     last_agent_message = [None for _ in range(MAX_GAME)]
+    last_sent_assignment = [None for _ in range(MAX_GAME)]
+
+    # Add these global variables near other per-id lists
+    last_delivered_count = [0 for _ in range(MAX_GAME)]
+    last_total_score = [0.0 for _ in range(MAX_GAME)]
 
     if not os.path.exists(progress_savepath):
         os.makedirs(os.path.dirname(progress_savepath), exist_ok=True)
