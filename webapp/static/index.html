@@ -499,6 +499,9 @@
             var websocket = new WebSocket(
                 "ws://" + window.location.hostname + ":63000/" + agentID + "/connect"
             );// var socket = io.connect();
+            // Add a global flag to control if human can send messages
+            var allowHumanMessage = true;
+
             websocket.onmessage = function (msg) {
                 // console.log(msg)
                 // console.log(msg.data)
@@ -554,13 +557,17 @@
                         document.getElementById('ai_led_btn').style.borderColor = "#007bff";
                         document.getElementById('human_led_btn').style.backgroundColor = "#6c757d";
                         document.getElementById('human_led_btn').style.borderColor = "#6c757d";
-                    } else if (mode === 'human_led') {
+                        document.getElementById('key_instruction').style.display = 'none';
+                        allowHumanMessage = false;
+                    } else {
                         document.getElementById('current_mode').innerText = "Human-led";
                         document.getElementById('current_mode').style.color = "#28a745";
                         document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
                         document.getElementById('human_led_btn').style.borderColor = "#28a745";
                         document.getElementById('ai_led_btn').style.backgroundColor = "#6c757d";
                         document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
+                        document.getElementById('key_instruction').style.display = '';
+                        allowHumanMessage = true;
                     }
                 }
 
@@ -587,122 +594,61 @@
                 }
             }
 
+            // Update button click handler to check allowHumanMessage
             for (var i = 1; i < 12; i++) {
                 button = document.getElementById('button_' + i)
                 button.addEventListener('click', function () {
+                    if (!allowHumanMessage) return;
                     var action = 0
                     var instruction = 0
                     var feedback = 0
                     switch (this.id) {
-                        case 'button_1':
-                            instruction = 1
-                            break;
-                        case 'button_2':
-                            instruction = 2
-                            break;
-                        case 'button_3':
-                            instruction = 3
-                            break;
-                        case 'button_4':
-                            instruction = 4
-                            break;
-                        case 'button_5':
-                            instruction = 5
-                            break;
-                        case 'button_6':
-                            instruction = 6
-                            break;
-                        case 'button_7':
-                            instruction = 7
-                            break;
-                        case 'button_8':
-                            instruction = 8
-                            break;
-                        case 'button_9':
-                            instruction = 9
-                            break;
-                        case 'button_10':
-                            feedback = 1
-                            break;
-                        case 'button_11':
-                            feedback = 2
-                            break;
-                        default: break
+                        case 'button_1': instruction = 1; break;
+                        case 'button_2': instruction = 2; break;
+                        case 'button_3': instruction = 3; break;
+                        case 'button_4': instruction = 4; break;
+                        case 'button_5': instruction = 5; break;
+                        case 'button_6': instruction = 6; break;
+                        case 'button_7': instruction = 7; break;
+                        case 'button_8': instruction = 8; break;
+                        case 'button_9': instruction = 9; break;
+                        case 'button_10': feedback = 1; break;
+                        case 'button_11': feedback = 2; break;
+                        default: break;
                     }
                     if (instruction != 0 || feedback != 0) {
-                        // console.log(`${action} ${instruction} ${feedback}`);
                         websocket.send(`${action} ${instruction} ${feedback}`);
                     }
                 })
             }
 
-
+            // Update keydown handler to check allowHumanMessage for message keys
             document.addEventListener('keydown', function (e) {
                 var action = 0
                 var instruction = 0
                 var feedback = 0
                 // AGENT_ACTIONS: 0: Noop, 1: Left, 2: right, 3: down, 4: up, 5: interact
                 switch (e.key) {
-                    case 'a': // left (A)
-                    case 'A': // left (A)
-                    case 'ArrowLeft': // left arrow key
-                        action = 1;
-                        break;
-                    case 'w': // up (W)
-                    case 'W': // up (W)
-                    case 'ArrowUp': // up arrow key
-                        action = 4;
-                        break;
-                    case 'd': // right (D)
-                    case 'D': // right (D)
-                    case 'ArrowRight': // right arrow key
-                        action = 2;
-                        break;
-                    case 's': // down (S)
-                    case 'S': // down (S)
-                    case 'ArrowDown': // down arrow key
-                        action = 3;
-                        break;
-                    case ' ':
-                    case 'Spacebar':
-                        action = 5;
-                        break;
-                    case '1':
-                        instruction = 1
-                        break;
-                    case '2':
-                        instruction = 2
-                        break;
-                    case '3':
-                        instruction = 3
-                        break;
-                    case '4':
-                        instruction = 4
-                        break;
-                    case '5':
-                        instruction = 5
-                        break;
-                    case '6':
-                        instruction = 6
-                        break;
-                    case '7':
-                        instruction = 7
-                        break;
-                    case '8':
-                        instruction = 8
-                        break;
-                    case '9':
-                        instruction = 9
-                        break;
-                    case '=':
-                        feedback = 1
-                        break;
-                    case '-':
-                        feedback = 2
-                        break;
-
-                    default: break
+                    case 'a': case 'A': case 'ArrowLeft': action = 1; break;
+                    case 'w': case 'W': case 'ArrowUp': action = 4; break;
+                    case 'd': case 'D': case 'ArrowRight': action = 2; break;
+                    case 's': case 'S': case 'ArrowDown': action = 3; break;
+                    case ' ': case 'Spacebar': action = 5; break;
+                    case '1': instruction = 1; break;
+                    case '2': instruction = 2; break;
+                    case '3': instruction = 3; break;
+                    case '4': instruction = 4; break;
+                    case '5': instruction = 5; break;
+                    case '6': instruction = 6; break;
+                    case '7': instruction = 7; break;
+                    case '8': instruction = 8; break;
+                    case '9': instruction = 9; break;
+                    case '=': feedback = 1; break;
+                    case '-': feedback = 2; break;
+                    default: break;
                 }
+                // Only allow sending messages if allowed
+                if ((instruction != 0 || feedback != 0) && !allowHumanMessage) return;
                 if (action != 0 || instruction != 0 || feedback != 0) {
                     websocket.send(`${action} ${instruction} ${feedback}`);
                 }
