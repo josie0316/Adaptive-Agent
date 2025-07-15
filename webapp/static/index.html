@@ -16,7 +16,7 @@
     }
 
     .communication {
-        width: 480px;
+        width: 320px;
         height: 520px;
         border: 1.5px solid black;
         margin: 5px;
@@ -37,7 +37,7 @@
     }
 
     #communication_info {
-        width: 460px;
+        width: 300px;
         height: 340px;
         border-radius: 10px;
         padding: 10px;
@@ -76,31 +76,33 @@
     }
 
     .agent_tiny_div {
-        width: 380px;
+        width: 220px;
         min-height: 24px;
 
         line-height: 24px;
         padding: 0px 5px;
-        margin: 4px 0px;
+        margin: 3px 0px;
         justify-content: center;
         align-items: center;
         text-align: start;
         background-color: #e8e8e8;
         border-radius: 5px;
         overflow: visible;
+        word-break: break-word;
     }
 
     .human_tiny_div {
-        width: 380px;
+        width: 220px;
         height: 24px;
         line-height: 24px;
         padding: 0px 5px;
-        margin: 4px 0px;
+        margin: 3px 0px;
         justify-content: center;
         align-items: center;
         text-align: end;
         background-color: #dddddd;
         border-radius: 5px;
+        word-break: break-word;
     }
 
     .agent_character_div {
@@ -166,7 +168,7 @@
     }
 
     .keys_name_4 {
-        width: 126px;
+        width: 100px;
         height: 30px;
         font-size: 0.9em;
         line-height: 30px;
@@ -221,52 +223,54 @@
                 style="color: rgb(68, 153, 113); display: none;">GREEN</span> hat.
         </div> -->
 
-        <div style="font-size: larger;">
-            You are controlling the agent with <span style="color: #000000">BLACK</span> hat.
-        </div>
-        <div style="font-size: larger;" id="partner_color">
-            Your partner is the agent with <span id="idx-1" style="color: #1c70ca; display: none">BLUE</span> <span id="idx0" style="color: #c30000; display: none;">RED</span><span
-                id="idx3" style="color: rgb(68, 153, 113); display: none;">GREEN</span> <span id="idx2" style="color: #da4bd2; display: none">PINK</span> <span id="idx1" style="color: #dc742a; display: none">ORANGE</span> hat.
-        </div>
-        <div style="font-size: larger; display: none" id="trail_info">
-            This is the TRAIL game.<br>，。(，)
-        </div>
-        <div style="font-size: larger; display: none" id="human_test">
-            This is the Level Testing game. Please try to achieve a score as higher as possible. <br>
-            ，.(，)
-        </div>
-        <div style="font-size: larger; display: none" id="main_game">
-            This is the <span id="game_id"></span>/<span id="max_id"></span> round game.
-        </div>
-        <div style="font-size: larger;" id="wait">
-            <span>You are waiting for the game to start, Refresh your web. <br>30，。
-            </span>
-        </div>
-        
-        <!-- Mode Switch Button (only for phases 9 and 10) -->
-        <div id="mode_switch_container" style="display: none; margin: 10px 0;">
-            <div style="font-size: larger; margin-bottom: 10px;">
-                <strong>Agent Control Mode:</strong>
-                <span id="current_mode" style="color: #007bff; font-weight: bold;">AI-led</span>
+        <div id="top-info-row" style="display: flex; align-items: flex-start; width: 100%; justify-content: center; margin-bottom: 10px;">
+            <div id="info-lines" style="display: flex; flex-direction: column; flex: 1; max-width: 500px;">
+                <div style="font-size: larger;">
+                    You are controlling the agent with <span style="color: #000000">BLACK</span> hat.
+                </div>
+                <div style="font-size: larger;" id="partner_color">
+                    Your partner is the agent with <span id="idx-1" style="color: #1c70ca; display: none">BLUE</span> <span id="idx0" style="color: #c30000; display: none;">RED</span><span
+                        id="idx3" style="color: rgb(68, 153, 113); display: none;">GREEN</span> <span id="idx2" style="color: #da4bd2; display: none">PINK</span> <span id="idx1" style="color: #dc742a; display: none">ORANGE</span> hat.
+                </div>
+                <div style="font-size: larger; display: none" id="trail_info">
+                    This is the TRAIL game.<br>，。(，)
+                </div>
+                <div style="font-size: larger; display: none" id="human_test">
+                    This is the Level Testing game. Please try to achieve a score as higher as possible. <br>
+                    ，.(，)
+                </div>
+                <div style="font-size: larger; display: none" id="main_game">
+                    This is the <span id="game_id"></span>/<span id="max_id"></span> round game.
+                </div>
+                <div style="font-size: larger;" id="wait">
+                    <span>You are waiting for the game to start, Refresh your web. <br>30，。
+                    </span>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="ai_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #007bff; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
-                    AI-led Mode
-                </button>
-                <button id="human_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #28a745; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
-                    Human-led Mode
-                </button>
-            </div>
-            <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
-                <div>AI-led: Agent sends instructions to you</div>
-                <div>Human-led: You send instructions to agent</div>
+            <div id="mode_switch_container" style="display: none; margin-left: 40px; min-width: 320px; max-width: 400px;">
+                <div style="font-size: larger; margin-bottom: 10px;">
+                    <strong>Agent Control Mode:</strong>
+                    <span id="current_mode" style="color: #007bff; font-weight: bold;">AI-led</span>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="ai_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #007bff; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                        AI-led Mode
+                    </button>
+                    <button id="human_led_btn" class="mode_btn" style="padding: 10px 20px; border: 2px solid #28a745; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                        Human-led Mode
+                    </button>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
+                    <div>AI-led: Agent sends instructions to you</div>
+                    <div>Human-led: You send instructions to agent</div>
+                </div>
             </div>
         </div>
         
         <br>
         <br>
         <div id="main-game" style="display: flex; flex-direction: row;">
-            <div style="display: flex; align-items: center; flex-direction: column; margin:10px 40px; padding:0px">
+            <div id="instruction-images" style="display: flex; align-items: center; flex-direction: column; margin:10px 40px; padding:0px">
                 <img src="/static/images/beefburger.png" style="width:250px">
                 <img src="/static/images/fire.png" style="width:250px">
                 <img src="/static/images/lettuceburger.png" style="width:250px">
@@ -284,8 +288,36 @@
 
                     <div id="key_instruction">
                         <hr />
-                        <div class="instruction_div">Click below buttons or press the shortcuts to send
-                            messages:<br>： </div>
+                        <div class="instruction_div">Click below buttons or press the shortcuts to send messages:<br>：</div>
+                        <div class="instruction_div" style="gap: 8px;">
+                            <div class="click_div" id="button_1">
+                                <div class="keys">1</div>
+                                <div class="keys_name_2">Lettuce</div>
+                            </div>
+                            <div class="click_div" id="button_2">
+                                <div class="keys">2</div>
+                                <div class="keys_name_2">Beef</div>
+                            </div>
+                            <div class="click_div" id="button_3">
+                                <div class="keys">3</div>
+                                <div class="keys_name_2">Bread</div>
+                            </div>
+                        </div>
+                        <div class="instruction_div" style="gap: 8px;">
+                            <div class="click_div" id="button_4">
+                                <div class="keys">4</div>
+                                <div class="keys_name_2">Plate</div>
+                            </div>
+                            <div class="click_div" id="button_5">
+                                <div class="keys">5</div>
+                                <div class="keys_name_2">Fire</div>
+                            </div>
+                            <div class="click_div" id="button_6">
+                                <div class="keys">6</div>
+                                <div class="keys_name_4">Good job!</div>
+                            </div>
+                        </div>
+                        <!--
                         <div class="instruction_div">
                             <div class="click_div" id="button_1">
                                 <div class="keys">1</div>
@@ -303,7 +335,6 @@
                                 <div class="keys">=</div>
                                 <div class="keys_name_4">Good Job!</div>
                             </div>
-
                         </div>
                         <div class="instruction_div">
                             <div class="click_div" id="button_2">
@@ -322,9 +353,6 @@
                                 <div class="keys">-</div>
                                 <div class="keys_name_4">Need Improvement</div>
                             </div>
-
-
-
                         </div>
                         <div class="instruction_div">
                             <div class="click_div" id="button_3">
@@ -339,9 +367,8 @@
                                 <div class="keys">9</div>
                                 <div class="keys_name_3">Fire</div>
                             </div>
-
-
                         </div>
+                        -->
                     </div>
 
                 </div>
@@ -595,6 +622,30 @@
             }
 
             // Update button click handler to check allowHumanMessage
+            // Only 6 buttons now, update logic accordingly
+            for (var i = 1; i <= 6; i++) {
+                button = document.getElementById('button_' + i)
+                button.addEventListener('click', function () {
+                    if (!allowHumanMessage) return;
+                    var action = 0
+                    var instruction = 0
+                    var feedback = 0
+                    switch (this.id) {
+                        case 'button_1': instruction = 4; break; // Lettuce
+                        case 'button_2': instruction = 5; break; // Beef
+                        case 'button_3': instruction = 6; break; // Bread
+                        case 'button_4': instruction = 7; break; // Plate
+                        case 'button_5': instruction = 9; break; // Fire
+                        case 'button_6': feedback = 1; break; // Good job!
+                        default: break;
+                    }
+                    if (instruction != 0 || feedback != 0) {
+                        websocket.send(`${action} ${instruction} ${feedback}`);
+                    }
+                })
+            }
+            /*
+            // Old button logic (commented for reference)
             for (var i = 1; i < 12; i++) {
                 button = document.getElementById('button_' + i)
                 button.addEventListener('click', function () {
@@ -621,7 +672,7 @@
                     }
                 })
             }
-
+            */
             // Update keydown handler to check allowHumanMessage for message keys
             document.addEventListener('keydown', function (e) {
                 var action = 0
@@ -634,17 +685,12 @@
                     case 'd': case 'D': case 'ArrowRight': action = 2; break;
                     case 's': case 'S': case 'ArrowDown': action = 3; break;
                     case ' ': case 'Spacebar': action = 5; break;
-                    case '1': instruction = 1; break;
-                    case '2': instruction = 2; break;
-                    case '3': instruction = 3; break;
-                    case '4': instruction = 4; break;
-                    case '5': instruction = 5; break;
-                    case '6': instruction = 6; break;
-                    case '7': instruction = 7; break;
-                    case '8': instruction = 8; break;
-                    case '9': instruction = 9; break;
-                    case '=': feedback = 1; break;
-                    case '-': feedback = 2; break;
+                    case '1': instruction = 4; break; // Lettuce
+                    case '2': instruction = 5; break; // Beef
+                    case '3': instruction = 6; break; // Bread
+                    case '4': instruction = 7; break; // Plate
+                    case '5': instruction = 9; break; // Fire
+                    case '6': feedback = 1; break; // Good job!
                     default: break;
                 }
                 // Only allow sending messages if allowed
@@ -653,6 +699,34 @@
                     websocket.send(`${action} ${instruction} ${feedback}`);
                 }
             });
+            /*
+            // Old keydown logic (commented for reference)
+            document.addEventListener('keydown', function (e) {
+                var action = 0
+                var instruction = 0
+                var feedback = 0
+                // AGENT_ACTIONS: 0: Noop, 1: Left, 2: right, 3: down, 4: up, 5: interact
+                switch (e.key) {
+                    case 'a': case 'A': case 'ArrowLeft': action = 1; break;
+                    case 'w': case 'W': case 'ArrowUp': action = 4; break;
+                    case 'd': case 'D': case 'ArrowRight': action = 2; break;
+                    case 's': case 'S': case 'ArrowDown': action = 3; break;
+                    case ' ': case 'Spacebar': action = 5; break;
+                    case '1': instruction = 1; break; // Lettuce
+                    case '2': instruction = 2; break; // Beef
+                    case '3': instruction = 3; break; // Bread
+                    case '4': instruction = 4; break; // Plate
+                    case '5': instruction = 5; break; // Fire
+                    case '6': feedback = 1; break; // Good job!
+                    default: break;
+                }
+                // Only allow sending messages if allowed
+                if ((instruction != 0 || feedback != 0) && !allowHumanMessage) return;
+                if (action != 0 || instruction != 0 || feedback != 0) {
+                    websocket.send(`${action} ${instruction} ${feedback}`);
+                }
+            });
+            */
 
             window.addEventListener("beforeunload", function () {
 
@@ -749,6 +823,19 @@
                 console.log('unload')
                 websocket.close();
             });
+
+            // After determining gamephase, add logic to hide instruction images and adjust layout for phases 9-12
+            if (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12) {
+                // Hide instruction images
+                var instrImgs = document.getElementById('instruction-images');
+                if (instrImgs) instrImgs.style.display = 'none';
+                // Adjust top info row layout (already set by default)
+                document.getElementById('top-info-row').style.display = 'flex';
+            } else {
+                // Show instruction images for other phases
+                var instrImgs = document.getElementById('instruction-images');
+                if (instrImgs) instrImgs.style.display = 'flex';
+            }
         }
 
     </script>
