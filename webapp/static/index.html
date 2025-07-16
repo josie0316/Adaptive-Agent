@@ -1,4 +1,4 @@
-,<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -6,6 +6,12 @@
     <script src="../static/js/socket.io.min.js"></script>
 </head>
 <style>
+    html, body {
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
     .agent_communication {
         width: 480px;
         height: 160px;
@@ -212,19 +218,65 @@
         transform: translateY(0);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
+    .two-col-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .two-col-left {
+        flex: 1;
+        margin-left: 40px;
+        margin-right: 40px;
+        min-width: 300px;
+    }
+    .two-col-right {
+        min-width: 320px;
+        max-width: 400px;
+        margin-right: 40px;
+        margin-left: 40px;
+    }
+    .main-game-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+    }
+    .main-game-left {
+        flex: 1;
+        margin-left: 40px;
+        margin-right: 40px;
+    }
+    .main-game-right {
+        min-width: 320px;
+        max-width: 400px;
+        margin-right: 40px;
+        margin-left: 40px;
+    }
 </style>
 
 <body>
-    <div style="display: flex; align-items: center; flex-direction: column;">
-        <h1>Gym-cooking</h1>
-        <!-- <div style="font-size: larger;">
-            You are index: <span id="index"></span>, which is the <span id="idx0"
-                style="color: #1c70ca; display: none;">BLUE</span><span id="idx1"
-                style="color: rgb(68, 153, 113); display: none;">GREEN</span> hat.
-        </div> -->
-
-        <div id="top-info-row" style="display: flex; align-items: flex-start; width: 100%; justify-content: center; margin-bottom: 10px;">
-            <div id="info-lines" style="display: flex; flex-direction: column; flex: 1; max-width: 500px;">
+    <!-- Popup Modal for round info -->
+    <div id="roundInfoModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:2000;">
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:32px 48px; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.2); min-width:320px; text-align:center;">
+            <div id="popup_info_black" style="font-size: 1.2em; margin-bottom: 10px;">You are controlling the agent with <span style='color:#000'>BLACK</span> hat.</div>
+            <div id="popup_info_partner" style="font-size: 1.2em; margin-bottom: 10px;">Your partner is the agent with <span style='color:rgb(68,153,113)'>GREEN</span> hat.</div>
+            <div id="popup_info_round" style="font-size: 1.2em; margin-bottom: 20px;">This is the <span id="popup_round_num"></span>/4 round game.</div>
+            <button id="closeRoundInfoModal" style="padding: 8px 32px; font-size: 1em; border-radius: 6px; background: #007bff; color: white; border: none; cursor: pointer;">Start</button>
+        </div>
+    </div>
+    <div style="display: flex; align-items: flex-start; flex-direction: row; width: 100vw; height: 100vh;">
+        <!-- Left column: Game canvas -->
+        <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; margin-left: 40px; margin-right: 40px; margin-top: 32px;">
+            <div id="game-canvas"></div>
+        </div>
+        <!-- Right column: Info rows, mode switch, message window -->
+        <div style="display: flex; flex-direction: column; min-width: 320px; max-width: 400px; margin-right: 40px; margin-left: 40px; height: 100vh; margin-top: 32px;">
+            <!-- Info rows -->
+            <div id="info-rows" style="margin-bottom: 16px;">
                 <div style="font-size: larger;">
                     You are controlling the agent with <span style="color: #000000">BLACK</span> hat.
                 </div>
@@ -247,7 +299,8 @@
                     </span>
                 </div>
             </div>
-            <div id="mode_switch_container" style="display: none; margin-left: 40px; min-width: 320px; max-width: 400px;">
+            <!-- Mode switch container -->
+            <div id="mode_switch_container" style="display: none; margin-bottom: 16px;">
                 <div style="font-size: larger; margin-bottom: 10px;">
                     <strong>Agent Control Mode:</strong>
                     <span id="current_mode" style="color: #007bff; font-weight: bold;">AI-led</span>
@@ -265,27 +318,11 @@
                     <div>Human-led: You send instructions to agent</div>
                 </div>
             </div>
-        </div>
-        
-        <br>
-        <br>
-        <div id="main-game" style="display: flex; flex-direction: row;">
-            <div id="instruction-images" style="display: flex; align-items: center; flex-direction: column; margin:10px 40px; padding:0px">
-                <img src="/static/images/beefburger.png" style="width:250px">
-                <img src="/static/images/fire.png" style="width:250px">
-                <img src="/static/images/lettuceburger.png" style="width:250px">
-                <img src="/static/images/beeflettuceburger.png" style="width:250px">
-            </div>
-            <div id="game-canvas"></div>
-
-            <div style="display: flex; align-items: center; flex-direction: column; margin:0px 40px; padding:10px">
+            <!-- Message window -->
+            <div style="display: flex; align-items: center; flex-direction: column; flex: 1;">
                 <div class="title"></div>
                 <div class="communication" id="communication">
-
-                    <div id="communication_info">
-
-                    </div>
-
+                    <div id="communication_info"></div>
                     <div id="key_instruction">
                         <hr />
                         <div class="instruction_div">Click below buttons or press the shortcuts to send messages:<br>：</div>
@@ -374,7 +411,6 @@
                 </div>
             </div>
         </div>
-
     </div>
     <script>
 
@@ -397,8 +433,8 @@
         else {
 
             // console.log(userInfo)
-            var canvasWidth = 480;
-            var canvasHeight = 600;
+            var canvasWidth = 650;
+            var canvasHeight = 650;
 
 
             var canvasElement = document.createElement('canvas');
@@ -411,13 +447,7 @@
 
             image.onload = function () {
                 console.log('onload')
-
-                const scaleFactor = 4 / 3;
-                const targetWidth = image.width * scaleFactor;
-                const targetHeight = image.height * scaleFactor;
-
-
-                context.drawImage(image, 0, 0, targetWidth, targetHeight);
+                context.drawImage(image, 0, 0, canvasElement.width, canvasElement.height);
             }
 
 
@@ -575,7 +605,7 @@
                 communication_info_div.scrollTop = communication_info_div.scrollHeight;
 
                 // Update mode display if available
-                if (data['agent_mode']) {
+                if (typeof data['agent_mode'] !== 'undefined' && (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12)) {
                     const mode = data['agent_mode'];
                     if (mode === 'ai_led') {
                         document.getElementById('current_mode').innerText = "AI-led";
@@ -586,7 +616,7 @@
                         document.getElementById('human_led_btn').style.borderColor = "#6c757d";
                         document.getElementById('key_instruction').style.display = 'none';
                         allowHumanMessage = false;
-                    } else {
+                    } else if (mode === 'human_led') {
                         document.getElementById('current_mode').innerText = "Human-led";
                         document.getElementById('current_mode').style.color = "#28a745";
                         document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
@@ -595,7 +625,17 @@
                         document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
                         document.getElementById('key_instruction').style.display = '';
                         allowHumanMessage = true;
+                    } else if (mode === 'human_only') {
+                        // For phase -1 and 0: always allow human message, hide mode switch
+                        allowHumanMessage = true;
+                        document.getElementById('mode_switch_container').style.display = "none";
+                        document.getElementById('key_instruction').style.display = '';
                     }
+                } else if (gamephase == -1 || gamephase == 0) {
+                    // In warmup/trial, always allow human to send messages, hide mode switch
+                    allowHumanMessage = true;
+                    document.getElementById('mode_switch_container').style.display = "none";
+                    document.getElementById('key_instruction').style.display = '';
                 }
 
                 if (data['time'] != time) {
@@ -835,6 +875,61 @@
                 // Show instruction images for other phases
                 var instrImgs = document.getElementById('instruction-images');
                 if (instrImgs) instrImgs.style.display = 'flex';
+            }
+
+            // Set up instruction images and canvas size for trial rounds (phase 0 and 1)
+            if (gamephase == 0 || gamephase == 1) {
+                // Show instruction images
+                let instrImgs = document.getElementById('instruction-images');
+                if (!instrImgs) {
+                    instrImgs = document.createElement('div');
+                    instrImgs.id = 'instruction-images';
+                    instrImgs.style.display = 'flex';
+                    instrImgs.style.alignItems = 'center';
+                    instrImgs.style.flexDirection = 'column';
+                    instrImgs.innerHTML = `
+                        <img src="/static/images/beefburger.png" style="width:250px">
+                        <img src="/static/images/fire.png" style="width:250px">
+                        <img src="/static/images/lettuceburger.png" style="width:250px">
+                        <img src="/static/images/beeflettuceburger.png" style="width:250px">
+                    `;
+                    // Insert before game-canvas
+                    var leftCol = document.querySelector('div[style*="flex: 1;"]');
+                    if (leftCol) leftCol.insertBefore(instrImgs, leftCol.firstChild);
+                } else {
+                    instrImgs.style.display = 'flex';
+                }
+                // Set canvas size to 480x600
+                canvasWidth = 480;
+                canvasHeight = 600;
+            } else {
+                // Hide instruction images if present
+                var instrImgs = document.getElementById('instruction-images');
+                if (instrImgs) instrImgs.style.display = 'none';
+                // Use the current canvas size (650x650 or whatever is set)
+                canvasWidth = 650;
+                canvasHeight = 650;
+            }
+            // Update canvas size
+            if (canvasElement) {
+                canvasElement.width = canvasWidth;
+                canvasElement.height = canvasHeight;
+            }
+
+            // Show popup before phases 9, 10, 11, 12
+            if (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12) {
+                // Calculate round number (1/4, 2/4, 3/4, 4/4)
+                var roundNum = 1;
+                if (gamephase == 9) roundNum = 1;
+                if (gamephase == 10) roundNum = 2;
+                if (gamephase == 11) roundNum = 3;
+                if (gamephase == 12) roundNum = 4;
+                document.getElementById('popup_round_num').innerText = roundNum;
+                document.getElementById('roundInfoModal').style.display = 'block';
+                // Pause game logic until modal is closed
+                document.getElementById('closeRoundInfoModal').onclick = function() {
+                    document.getElementById('roundInfoModal').style.display = 'none';
+                };
             }
         }
 

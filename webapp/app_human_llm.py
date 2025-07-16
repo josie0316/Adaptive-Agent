@@ -230,7 +230,7 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
         # env step
         traj_infos[id]["traj"].append(current_traj_element)
         # Save state_before before env.step for order completion check
-        state_before = env.get_json_state_simple(llm_idxs[id])
+        state_before = envs[id].get_json_state_simple(llm_idxs[id])
         outcome, info = env.step(decision)
         # Save state_after after env.step for order completion check
         state_after = env.get_json_state_simple(llm_idxs[id])
@@ -239,13 +239,12 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
         deliver_log_after = state_after.get('deliver_log', [])
         total_score_before = state_before.get('total_score', 0.0)
         total_score_after = state_after.get('total_score', 0.0)
-        # If a new order is delivered (deliver_log grows) or score increases, send 'good job'
-        if (len(deliver_log_after) > last_delivered_count[id]) or (total_score_after > last_total_score[id]):
-            logger.info("Order completed! Sending good job.")
-            info_list = update_info_list(info_list, "agent", "good job", info["player_0"]["t"])
-            current_traj_element["message"].append((llm_idxs[id], "good job"))
-        # Update last delivered count and score
-        last_delivered_count[id] = len(deliver_log_after)
+        # Only send 'good job' when the score increases (i.e., after a successful delivery)
+        if total_score_after > last_total_score[id]:
+            if rule_agents[id] is not None and rule_agents[id].mode == "ai_led" and rule_agents[id].send_message:
+                logger.info("Order completed! Sending good job.")
+                info_list = update_info_list(info_list, "agent", "good job", info["player_0"]["t"])
+                current_traj_element["message"].append((llm_idxs[id], "good job"))
         last_total_score[id] = total_score_after
         logger.debug(f"""Timestep and score: {info["player_0"]["t"]}, {info["player_0"]["score"]}""")
         # total_score = sum(traj_infos[id]["score"])
@@ -302,23 +301,32 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
         async with HUMAN_INPUT_LOCK:
             if instructions[id] != 0:
                 if instructions[id] != 9:
-                    # logger.info(f"{instructions[id]=}")
                     human_message = f"We need {INSTRUCTIONS[instructions[id]]}"
                 else:
                     human_message = "Fire!"
 
-                # Route human instruction to agent if in human-led mode
-                if rule_agents[id].mode == "human_led":
-                    rule_agents[id].receive_human_instruction(human_message)
-
-                info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
-                instructions[id] = 0
+                # For phase -1 and 0, just log/display the human message, do not process with agent
+                if game_phases[id] in [-1, 0]:
+                    info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
+                    instructions[id] = 0
+                    feedbacks[id] = 0
+                else:
+                    # Route human instruction to agent if in human-led mode
+                    if rule_agents[id].mode == "human_led":
+                        rule_agents[id].receive_human_instruction(human_message)
+                    info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
+                    instructions[id] = 0
 
         async with HUMAN_INPUT_LOCK:
             if feedbacks[id] != 0:
                 human_message = FEEDBACK[feedbacks[id]]
-                info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
-                feedbacks[id] = 0
+                # For phase -1 and 0, just log/display the human feedback, do not process with agent
+                if game_phases[id] in [-1, 0]:
+                    info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
+                    feedbacks[id] = 0
+                else:
+                    info_list = update_info_list(info_list, "human", human_message, info["player_0"]["t"])
+                    feedbacks[id] = 0
         if human_message and game_phases[id] > 0:
             history_buffers[id].add_message(human_message, 1 - llm_idxs[id])
             current_traj_element["message"].append((human_idxs[id], human_message))
