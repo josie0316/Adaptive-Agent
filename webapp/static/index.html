@@ -878,7 +878,7 @@
             }
 
             // Set up instruction images and canvas size for trial rounds (phase 0 and 1)
-            if (gamephase == 0 || gamephase == 1) {
+            if (gamephase == -1 || gamephase == 0) {
                 // Show instruction images
                 let instrImgs = document.getElementById('instruction-images');
                 if (!instrImgs) {
@@ -930,6 +930,28 @@
                 document.getElementById('closeRoundInfoModal').onclick = function() {
                     document.getElementById('roundInfoModal').style.display = 'none';
                 };
+            }
+
+            // 自动切换模式 for phase 11/12
+            if (gamephase == 11 && !sessionStorage.getItem('phase11ModeSet')) {
+                sessionStorage.setItem('phase11ModeSet', '1');
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:human_led");
+                } else {
+                    websocket.addEventListener('open', function() {
+                        websocket.send("MODE_SWITCH:human_led");
+                    }, { once: true });
+                }
+            }
+            if (gamephase == 12 && !sessionStorage.getItem('phase12ModeSet')) {
+                sessionStorage.setItem('phase12ModeSet', '1');
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:ai_led");
+                } else {
+                    websocket.addEventListener('open', function() {
+                        websocket.send("MODE_SWITCH:ai_led");
+                    }, { once: true });
+                }
             }
         }
 

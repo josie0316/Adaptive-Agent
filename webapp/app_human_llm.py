@@ -472,9 +472,13 @@ async def startgame(id):
                             infer_human=True,
                         )
                 elif PHASE_2_AGENT[game_phases[id]] == "adaptive_dpt":
-                    # New agent for rounds 9-12
-                    # For phases 9 and 10, start with AI-led mode by default
-                    initial_mode = "ai_led" if game_phases[id] in [9, 10] else "ai_led"
+                    # Set initial mode for each phase
+                    if game_phases[id] in [9, 10, 12]:
+                        initial_mode = "ai_led"
+                    elif game_phases[id] == 11:
+                        initial_mode = "human_led"
+                    else:
+                        initial_mode = "ai_led"
                     rule_agents[id] = AdaptiveDPTAgent(
                         text_agents[id],
                         envs[id]._env.unwrapped.world,
@@ -923,10 +927,9 @@ async def getphase(id):
                     questionnaire = json.load(f)
                 if "in_game" in questionnaire.keys():
                     in_game = questionnaire["in_game"]
-                    if phase_key in in_game.keys() and "traj_path" in in_game[phase_key].keys() and game_phase > 0:
-                        if game_phase % 2 == 0:
-                            logger.info(f"{game_phase}")
-                            to_questionnaire = True
+                    if phase_key in in_game.keys() and "traj_path" in in_game[phase_key].keys() and game_phase in [9, 11]:
+                        logger.info(f"{game_phase}")
+                        to_questionnaire = True
             with open(progress_savepath, encoding="utf-8") as f:
                 progress = json.load(f)
         logger.info(progress)
@@ -1027,10 +1030,11 @@ async def save_traj_info():
                 progress = json.load(f)
             id_name_phone = f"{data_json.get('name')}_{data_json.get('phone')}"
             phase_idx = progress[id_name_phone]["game_sequence_idx"]
-            if phase_idx <= 0 or phase_idx % 2 != 0:
-                progress[id_name_phone]["game_sequence_idx"] += 1
-                with open(progress_savepath, "w", encoding="utf-8") as f:
-                    json.dump(progress, f, ensure_ascii=False)
+            # 移除自增操作，避免重复加一
+            # if phase_idx <= 0 or phase_idx % 2 != 0:
+            #     progress[id_name_phone]["game_sequence_idx"] += 1
+            with open(progress_savepath, "w", encoding="utf-8") as f:
+                json.dump(progress, f, ensure_ascii=False)
         if phase_idx >= 0:
             questionnaire_path = os.path.join(questionnaire_savepath, id_name_phone)
             with open(f"{questionnaire_path}.json", encoding="utf-8") as f:
@@ -1084,37 +1088,37 @@ async def create_questionnaire_in_game():
         in_game = {}
     else:
         in_game = questionnaire["in_game"]
-    # traj_id = data_json["traj_id"]
-    # save_path = os.path.normpath(traj_savepath)
-    # filename = f"{traj_id}.json".replace(":", "_")
     phase = int(data_json["gamephase"])
     phase_key = f"phase_{phase}"
     if phase_key not in in_game:
         in_game[phase_key] = {}
 
-    order = data_json["questionnaire"]
-    order_keys = list(order.keys())
-    explicit_order = {key: {} for key in order_keys}
-    key_to_name = {
-        "0": "react",
-        "1": "reflexion",
-        "2": "wtom",
-        "3": "wotom",
-        "4": "adaptive_dpt",
-    }
-    print(order)
-    print(explicit_order)
-    for order_key in order_keys:
-        for key in order[order_key]:
-            if key in key_to_name:
-                explicit_order[order_key][key_to_name[key]] = order[order_key][key]
-        else:
-            logger.warning(f"Key {key} not in key_to_name mapping, skipping.")
-    if phase_key not in in_game.keys():
-        logger.error(f"Phase {phase} not in in_game")
-    else:
-        # in_game[phase_key]["questionnaire"] = data_json["questionnaire"]
+    # 新增：如果有 cognitive_load 字段，直接写入
+    if "cognitive_load" in data_json:
+        in_game[phase_key]["cognitive_load"] = data_json["cognitive_load"]
+
+    # 下面是原有的问卷处理逻辑
+    if "questionnaire" in data_json:
+        order = data_json["questionnaire"]
+        order_keys = list(order.keys())
+        explicit_order = {key: {} for key in order_keys}
+        key_to_name = {
+            "0": "react",
+            "1": "reflexion",
+            "2": "wtom",
+            "3": "wotom",
+            "4": "adaptive_dpt",
+        }
+        print(order)
+        print(explicit_order)
+        for order_key in order_keys:
+            for key in order[order_key]:
+                if key in key_to_name:
+                    explicit_order[order_key][key_to_name[key]] = order[order_key][key]
+            else:
+                logger.warning(f"Key {key} not in key_to_name mapping, skipping.")
         in_game[phase_key]["questionnaire"] = explicit_order
+
     questionnaire["in_game"] = in_game
     with open(f"{questionnaire_path}.json", "w", encoding="utf-8") as fw:
         json.dump(questionnaire, fw, ensure_ascii=False)

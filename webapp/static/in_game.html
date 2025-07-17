@@ -137,283 +137,53 @@
 
 <body>
     <div class="container">
-        <h2>Questionnaire</h2>
+        <h2>In-Game Questionnaire</h2>
         <br>
         <h4>
-
-            <p>Please rank the agents by dragging the corresponding figures based on your feelings of the agents'
-                cooperation ability  and your preference.</p>
             <p>
-                Please rank the agents <b>from best to worst, from top to bottom</b>.
+                Please rate your cognitive load while playing the game.<br>
+                <b>1</b> means minimal mental effort, <b>10</b> means extremely high mental effort required.
             </p>
         </h4>
-        <h4>
-            <p>，。</p>
-            <p><b>，</b>。</p>
-        </h4>
-        <br>
-        <div class="q-list"></div>
-        <hr>
-        <br>
-        <h4>
-            <p><b>，</b>。</p>
-        </h4>
-        <br>
-        <div class="q-list-2"></div>
-
-        <div>
-        <div>
-            <!-- <a href="./instruction"> -->
-    <div>
-            <!-- <a href="./instruction"> -->
-        <div id="submit-btn" style="color: #0056b3; cursor: pointer;">Submit</div>
-            <!-- </a> -->
+        <div id="cognitive-load-question" style="margin-bottom: 30px;">
+            <label for="cognitive-load-slider" style="font-size: 1.2em;">Cognitive Load (1-10):</label>
+            <input type="range" min="1" max="10" value="5" class="form-range" id="cognitive-load-slider" style="width: 300px;">
+            <span id="cognitive-load-value" style="font-size: 1.2em; margin-left: 10px;">5</span>
+        </div>
+        <button id="submit-btn" class="btn btn-primary">Submit</button>
     </div>
+    <!--
+    <div class="q-list"></div>
+    <hr>
     <br>
-    <br>
-    <br>
-    </div>
+    <div class="q-list-2"></div>
+    -->
     <script>
-        agentID = sessionStorage.getItem('agentID');
-        var userInfo = sessionStorage.getItem('before_game')
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", '/' + agentID + '/getphase', false);
-        xhr.send(userInfo);
-        var response = JSON.parse(xhr.response);
-        console.log(response)
-        var gamephase = response['gamephase'];
-        var lastphase = response['lastphase'];
-        var maxphase = response['maxphase'];
-        var game_sequence = response['game_sequence'];
-        if (gamephase <= 0 || gamephase % 2 != 0) {
-            window.location.href = '/';
-        } else {
-            var questionnaire = {
-                // "I am playing well.": 0,
-                "The agent and I have good teamwork.": 0,
-                "The agent is contributing to the success of the team.": 0,
-                "I understand the agent's intentions.": 0
-            }
-            $(function () {
-                // add eventlistener
-                $("#submit-btn").click(submit)
-                getQuestion()
-            });
-            function getQuestion() {
-                var arr = [
-                    // "I am playing well.",
-                    "The agent and I have good teamwork.",
-                    "The agent is contributing to the success of the team.",
-                    "I understand the agent's intentions."
-                ]
-                initQuestion(arr)
-            }
-            function initQuestion(arr) {
-                var aiType = getAgentList(game_sequence);
-                n_agents = aiType.length;
-                console.log('aiType:', aiType);
+        // Cognitive load slider显示分数
+        document.getElementById('cognitive-load-slider').addEventListener('input', function() {
+            document.getElementById('cognitive-load-value').innerText = this.value;
+        });
 
-                var color_map = {};
-                for (var i = 0; i < aiType.length; i++) {
-                    color_map[aiType[i].value] = aiType[i].color;
-                }
-
-
-                if (n_agents == 1) {
-                    sessionStorage.setItem('questionnaire', JSON.stringify({}));
-                }
-
-                var old_order = JSON.parse(sessionStorage.getItem('questionnaire')) || {};
-                console.log('old_order:', old_order);
-
-
-                var current_order = {};
-                if (Object.keys(old_order).length > 0 && old_order.cooperation) {
-
-                    for (var i = 0; i < aiType.length; i++) {
-                        var name = aiType[i].value;
-                        var position = old_order.cooperation[name];
-                        current_order[position !== undefined ? position : i] = name;
-                    }
-                } else {
-                    for (var i = 0; i < aiType.length; i++) {
-                        current_order[i] = aiType[i].value;
-                    }
-                }
-
-
-                var type_to_id = {};
-                for (var i = 0; i < aiType.length; i++) {
-                    type_to_id[aiType[i].value] = aiType[i].value;
-                }
-
-                console.log('current_order:', current_order);
-
-
-                var test = '<div id="tablediv"><ul id="sortable">';
-                for (var i = 0; i < n_agents; i++) {
-                    var agentId = current_order[i];
-                    test += `<li id="${agentId}" class="sortitem" index="${i}">
-                        <div class="sortitem_div">
-                            <div class="ai-img_div">
-                                Agent: <img class="ai-img" src="/static/images/chef_${color_map[agentId]}.png" />
-                            </div>
-                            <div class="ai-name_div"> Agent id: ${parseInt(agentId) + 1}</div>
-                        </div>
-                    </li>`;
-                }
-                test += '</ul></div>';
-                $(".q-list").append(test);
-
-                var test2 = '<div id="tablediv2"><ul id="sortable2">';
-                for (var i = 0; i < n_agents; i++) {
-                    var agentId = current_order[i];
-                    test2 += `<li id="preference_${agentId}" class="sortitem" index="${i}">
-                        <div class="sortitem_div">
-                            <div class="ai-img_div">
-                                Agent: <img class="ai-img" src="/static/images/chef_${color_map[agentId]}.png" />
-                            </div>
-                            <div class="ai-name_div"> Agent id: ${parseInt(agentId) + 1}</div>
-                        </div>
-                    </li>`;
-                }
-                test2 += '</ul></div>';
-                $(".q-list-2").append(test2);
-
-                $("#sortable").sortable();
-                $("#sortable2").sortable();
-            }
-            function submit() {
-                var paramsData = getDomData();
-                var agent_type = sessionStorage.getItem('agent_type') || 0;
-                var agent_settings = JSON.parse(sessionStorage.getItem('game_setting_list')) || [];
-                paramsData['agent_settings_list'] = agent_settings;
-
-
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/update_questionnaire_in_game", false);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.send(JSON.stringify(paramsData));
-                var response = JSON.parse(xhr.response);
-
-
-                saveDataToSession();
-
-
-                gamephase = sessionStorage.getItem('gamephase')
-                lastphase = sessionStorage.getItem('lastphase')
-                if (gamephase == lastphase) {
-                    // after game
-                    setTimeout(function () {
-                        window.location.href = '/html/after_game';
-                    }, 10);
-
-                } else {
-                    // new game
-                    setTimeout(function () {
-                        window.location.href = '/';
-                    }, 10);
-                }
-            }
-            function saveDataToSession() {
-                var paramsData = getDomData();
-
-                sessionStorage.setItem('questionnaire', JSON.stringify(paramsData.questionnaire));
-            }
-            function getAgentList(game_sequence){
-                console.log(game_sequence)
-                var agentList = []
-                var agentNameList = []
-                var colorMap = {
-                    0: 'red',
-                    1: 'orange',
-                    2: 'pink',
-                    3: 'green',
-                    // 4: 'blue',   //new
-                    // 5: 'purple'  //new
-                }
-                for (var i = 0; i < game_sequence.length; i++) {
-                    var agentName = Math.floor((game_sequence[i] - 1) / 2);
-                    console.log(agentName)
-                    if (!agentNameList.includes(agentName)) {
-                        agentList.push({
-                            value: agentName,
-                            color: colorMap[agentName]
-                        })
-                        agentNameList.push(agentName)
-                    }
-                }
-                return agentList
-            }
-            // function getAgentList(agent_settings, n_agents, n_runs, n_layouts) {
-            //     var agentList = []
-            //     var agentNameList = []
-            //     console.log('agent_settings', agent_settings)
-            //     var colorMap = {
-            //         'AGENT_TYPE_A': 'blue',
-            //         'AGENT_TYPE_B': 'green',
-            //         'AGENT_TYPE_C': 'orange',
-            //         'AGENT_TYPE_D': 'red',
-            //         'AGENT_TYPE_E': 'purple',
-            //         'AGENT_TYPE_F': 'black',
-            //         'AGENT_TYPE_G': 'yellow',
-            //     }
-            //     // for (var i = )
-            //     console.log('n_runs', n_runs)
-            //     console.log('n_layouts', n_layouts)
-            //     for (var i = 1 + n_runs * n_layouts; i < n_agents + n_runs * n_layouts + 1; i++) {
-            //         var agentName = agent_settings[i]['agents'][1] != 'human' ? agent_settings[i]['agents'][1] : agent_settings[i]['agents'][0];
-            //         if (!agentNameList.includes(agentName)) {
-            //             agentList.push({
-            //                 value: agentName,
-            //                 color: colorMap[agentName] || 'white'
-            //             })
-            //             agentNameList.push(agentName)
-            //         }
-            //     }
-            //     return agentList
-            // }
-            function getOrder() {
-                var order = $(".sortitem").toArray()
-                var res = {
-                    cooperation: {},
-                   preference: {}
-                }
-
-                var order1 = $("#sortable .sortitem").toArray()
-                for (var i = 0; i < order1.length; i++) {
-                    var name = $(order1[i]).attr('id')
-                    res.cooperation[name] = i
-                }
-
-                var order2 = $("#sortable2 .sortitem").toArray()
-                for (var i = 0; i < order2.length; i++) {
-                    var name = $(order2[i]).attr('id').replace('preference_', '')
-                    res.preference[name] = i
-                }
-
-                return res
-            }
-            function getDomData() {
-                var userInfo = JSON.parse(sessionStorage.getItem('before_game')) || {}
-                var inGameList = JSON.parse(sessionStorage.getItem('in_game')) || []
-                var trajname = sessionStorage.getItem('trajname')
-                var currentGame = inGameList[inGameList.length - 1] || {}
-                var order = getOrder()
-
-                var params = {
-                    name: userInfo.name,
-                    phone: userInfo.phone,
-                    traj_id: trajname,
-                    agent_type: 0,
-                    questionnaire: order,
-                    gamephase: gamephase,
-                }
-                console.log('params', params)
-                return params
-            }
-        }
-
+        // 提交按钮逻辑
+        document.getElementById('submit-btn').onclick = function() {
+            var cognitiveLoad = document.getElementById('cognitive-load-slider').value;
+            var userInfo = JSON.parse(sessionStorage.getItem('before_game')) || {};
+            var trajname = sessionStorage.getItem('trajname');
+            var params = {
+                name: userInfo.name,
+                phone: userInfo.phone,
+                traj_id: trajname,
+                cognitive_load: cognitiveLoad,
+                gamephase: sessionStorage.getItem('gamephase')
+            };
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/update_questionnaire_in_game", false);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(params));
+            setTimeout(function () {
+                window.location.href = '/';
+            }, 10);
+        };
     </script>
 </body>
 
