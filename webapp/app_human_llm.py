@@ -474,11 +474,11 @@ async def startgame(id):
                 elif PHASE_2_AGENT[game_phases[id]] == "adaptive_dpt":
                     # Set initial mode for each phase
                     if game_phases[id] in [9, 10, 12]:
-                        initial_mode = "ai_led"
-                    elif game_phases[id] == 11:
                         initial_mode = "human_led"
-                    else:
+                    elif game_phases[id] == 11:
                         initial_mode = "ai_led"
+                    else:
+                        initial_mode = "human_led"
                     rule_agents[id] = AdaptiveDPTAgent(
                         text_agents[id],
                         envs[id]._env.unwrapped.world,
@@ -1171,6 +1171,29 @@ async def log_fake_button_press():
         f.write(json.dumps(data, ensure_ascii=False) + "\n")
     print(f"Fake button press logged: {data}")
     return jsonify({"status": "ok"})
+
+
+@app.route("/save_baseline_results", methods=["POST"])
+async def save_baseline_results():
+    """Save baseline cognitive test results"""
+    data = await request.get_json()
+    # Create logs directory if it doesn't exist
+    log_path = "logs/baseline_test_results.jsonl"
+    import os
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    
+    # Add timestamp and additional metadata
+    import datetime
+    data['server_timestamp'] = datetime.datetime.now().isoformat()
+    
+    # Save to file
+    with open(log_path, "a", encoding="utf-8") as f:
+        import json
+        f.write(json.dumps(data, ensure_ascii=False) + "\n")
+    
+    logger.info(f"Baseline test results saved for user: {data.get('name', 'unknown')}")
+    print(f"Baseline test results logged: {data.get('baselineTest', {})}")
+    return jsonify({"status": "ok", "message": "Baseline results saved successfully"})
 
 
 @app.route("/")

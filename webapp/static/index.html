@@ -22,12 +22,26 @@
     }
 
     .communication {
-        width: 320px;
-        height: 520px;
+        width: 350px;
+        height: 465px;
         border: 1.5px solid black;
         margin: 5px;
         border-radius: 10px;
         justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Smaller communication panel for phases 9-12 */
+    .communication.compact {
+        width: 350px;
+        height: 350px;
+    }
+
+    /* Smaller communication panel for phases -1 and 0 */
+    .communication.trial {
+        width: 320px;
+        height: 435px;
     }
 
     #agent_info {
@@ -43,15 +57,45 @@
     }
 
     #communication_info {
-        width: 300px;
-        height: 340px;
+        width: 330px;
+        height: 270px;
         border-radius: 10px;
         padding: 10px;
         display: flex;
         flex-direction: column;
         overflow: auto;
+        flex: 1;
         /* align-items: center; */
         /* justify-content: center; */
+    }
+
+    /* Compact communication info for phases 9-12 */
+    .communication.compact #communication_info {
+        width: 330px;
+        height: auto;
+        flex: 1;
+    }
+
+    /* Trial communication info for phases -1 and 0 */
+    .communication.trial #communication_info {
+        width: 300px;
+        height: 240px;
+        flex: 1;
+    }
+
+    /* Compact mode adjustments for phases 9-12 */
+    .communication.compact .agent_tiny_div,
+    .communication.compact .human_tiny_div {
+        font-size: 0.85em;
+        min-height: 20px;
+        line-height: 20px;
+        margin: 2px 0px;
+    }
+
+    .communication.compact .instruction_div {
+        height: 26px;
+        margin: 3px 0px;
+        font-size: 0.8em;
     }
 
     .info_div {
@@ -82,10 +126,10 @@
     }
 
     .agent_tiny_div {
-        width: 220px;
-        min-height: 24px;
+        width: 240px;
+        min-height: 22px;
 
-        line-height: 24px;
+        line-height: 22px;
         padding: 0px 5px;
         margin: 3px 0px;
         justify-content: center;
@@ -95,12 +139,13 @@
         border-radius: 5px;
         overflow: visible;
         word-break: break-word;
+        font-size: 0.9em;
     }
 
     .human_tiny_div {
-        width: 220px;
-        height: 24px;
-        line-height: 24px;
+        width: 240px;
+        height: 22px;
+        line-height: 22px;
         padding: 0px 5px;
         margin: 3px 0px;
         justify-content: center;
@@ -109,6 +154,7 @@
         background-color: #dddddd;
         border-radius: 5px;
         word-break: break-word;
+        font-size: 0.9em;
     }
 
     .agent_character_div {
@@ -133,6 +179,7 @@
 
     #key_instruction {
         padding: 0px 5px;
+        flex-shrink: 0;
     }
 
     .keys {
@@ -186,9 +233,9 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        height: 30px;
-        margin: 5px 0px;
-        font-size: 0.91em;
+        height: 28px;
+        margin: 4px 0px;
+        font-size: 0.85em;
     }
 
     .click_div {
@@ -233,8 +280,8 @@
         min-width: 300px;
     }
     .two-col-right {
-        min-width: 320px;
-        max-width: 400px;
+        min-width: 350px;
+        max-width: 380px;
         margin-right: 40px;
         margin-left: 40px;
     }
@@ -251,10 +298,50 @@
         margin-right: 40px;
     }
     .main-game-right {
-        min-width: 320px;
-        max-width: 400px;
+        min-width: 350px;
+        max-width: 380px;
         margin-right: 40px;
         margin-left: 40px;
+    }
+    
+    /* Trial phase right column styling */
+    .trial-right-column {
+        min-width: 320px !important;
+        max-width: 350px !important;
+    }
+    
+    /* Game pause overlay */
+    .game-pause-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1500;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+    
+    /* Keyboard key styling */
+    kbd {
+        background-color: #f7f7f7;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2), 0 0 0 2px #fff inset;
+        color: #333;
+        display: inline-block;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        line-height: 1.4;
+        margin: 0 .1em;
+        padding: .1em .6em;
+        text-shadow: 0 1px 0 #fff;
     }
 </style>
 
@@ -271,10 +358,15 @@
     <div style="display: flex; align-items: flex-start; flex-direction: row; width: 100vw; height: 100vh;">
         <!-- Left column: Game canvas -->
         <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; margin-left: 40px; margin-right: 40px; margin-top: 32px;">
-            <div id="game-canvas"></div>
+            <div id="game-canvas" style="position: relative;">
+                <!-- Game pause overlay -->
+                <div id="gamePauseOverlay" class="game-pause-overlay">
+                    <div>GAME PAUSED</div>
+                </div>
+            </div>
         </div>
         <!-- Right column: Info rows, mode switch, message window -->
-        <div style="display: flex; flex-direction: column; min-width: 320px; max-width: 400px; margin-right: 40px; margin-left: 40px; height: 100vh; margin-top: 32px;">
+        <div style="display: flex; flex-direction: column; min-width: 350px; max-width: 380px; margin-right: 40px; margin-left: 40px; height: 100vh; margin-top: 32px;">
             <!-- Info rows -->
             <div id="info-rows" style="margin-bottom: 16px;">
                 <div style="font-size: larger;">
@@ -285,17 +377,16 @@
                         id="idx3" style="color: rgb(68, 153, 113); display: none;">GREEN</span> <span id="idx2" style="color: #da4bd2; display: none">PINK</span> <span id="idx1" style="color: #dc742a; display: none">ORANGE</span> hat.
                 </div>
                 <div style="font-size: larger; display: none" id="trail_info">
-                    This is the TRAIL game.<br>，。(，)
+                    This is the TRAIL game.<br>
                 </div>
                 <div style="font-size: larger; display: none" id="human_test">
                     This is the Level Testing game. Please try to achieve a score as higher as possible. <br>
-                    ，.(，)
                 </div>
                 <div style="font-size: larger; display: none" id="main_game">
                     This is the <span id="game_id"></span>/<span id="max_id"></span> round game.
                 </div>
                 <div style="font-size: larger;" id="wait">
-                    <span>You are waiting for the game to start, Refresh your web. <br>30，。
+                    <span>You are waiting for the game to start, Refresh your web. <br>
                     </span>
                 </div>
             </div>
@@ -316,6 +407,7 @@
                 <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
                     <div>AI-led: Agent sends instructions to you</div>
                     <div>Human-led: You send instructions to agent</div>
+                    <div style="margin-top: 5px; font-weight: bold; color: #007bff;">Press <kbd>Shift</kbd> to toggle modes</div>
                 </div>
             </div>
             <!-- Message window -->
@@ -413,6 +505,112 @@
         </div>
     </div>
     <script>
+        // Game pause/resume functionality
+        let gamePaused = false;
+        // Current mode tracking for toggle functionality
+        let currentMode = 'ai_led'; // Default mode
+
+        // Debug functions for testing random assignment
+        window.clearPhaseStorage = function() {
+            sessionStorage.removeItem('phase9ModeSet');
+            sessionStorage.removeItem('phase10ModeSet');
+            sessionStorage.removeItem('phase9RandomMode');
+            sessionStorage.removeItem('phase10RandomMode');
+            console.log('Cleared all phase storage - random assignment will work on next phase entry');
+        };
+
+        window.checkPhaseStorage = function() {
+            console.log('Phase 9 mode set:', sessionStorage.getItem('phase9ModeSet'));
+            console.log('Phase 9 random mode:', sessionStorage.getItem('phase9RandomMode'));
+            console.log('Phase 10 mode set:', sessionStorage.getItem('phase10ModeSet'));
+            console.log('Phase 10 random mode:', sessionStorage.getItem('phase10RandomMode'));
+        };
+
+        window.forceRandomMode = function(phase) {
+            if (phase === 9) {
+                sessionStorage.removeItem('phase9ModeSet');
+                var randomMode = Math.random() < 0.5 ? 'human_led' : 'ai_led';
+                console.log('Forcing Phase 9 random mode:', randomMode);
+                if (websocket && websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:" + randomMode);
+                }
+            } else if (phase === 10) {
+                sessionStorage.removeItem('phase10ModeSet');
+                var randomMode = Math.random() < 0.5 ? 'human_led' : 'ai_led';
+                console.log('Forcing Phase 10 random mode:', randomMode);
+                if (websocket && websocket.readyState === WebSocket.OPEN) {
+                    websocket.send("MODE_SWITCH:" + randomMode);
+                }
+            }
+        };
+
+        function pauseGame() {
+            gamePaused = true;
+            // Show pause overlay
+            document.getElementById('gamePauseOverlay').style.display = 'flex';
+            // Send pause command to backend
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send("GAME_PAUSE");
+                console.log("Game paused for questionnaire");
+            }
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            // Hide pause overlay
+            document.getElementById('gamePauseOverlay').style.display = 'none';
+            // Send resume command to backend
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send("GAME_RESUME");
+                console.log("Game resumed after questionnaire");
+            }
+        }
+
+        function switchToMode(mode) {
+            // Only allow mode switching for phases 9, 10, 11, 12
+            if (!(gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12)) {
+                return;
+            }
+
+            // Handle fake button modal for phases 11, 12
+            if (gamephase == 11 || gamephase == 12) {
+                showFakeButtonModal();
+                return;
+            }
+
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                if (mode === 'ai_led') {
+                    websocket.send("MODE_SWITCH:ai_led");
+                    document.getElementById('current_mode').innerText = "AI-led";
+                    document.getElementById('current_mode').style.color = "#007bff";
+                    // Update button styles
+                    document.getElementById('ai_led_btn').style.backgroundColor = "#007bff";
+                    document.getElementById('ai_led_btn').style.borderColor = "#007bff";
+                    document.getElementById('human_led_btn').style.backgroundColor = "#6c757d";
+                    document.getElementById('human_led_btn').style.borderColor = "#6c757d";
+                    currentMode = 'ai_led';
+                } else if (mode === 'human_led') {
+                    websocket.send("MODE_SWITCH:human_led");
+                    document.getElementById('current_mode').innerText = "Human-led";
+                    document.getElementById('current_mode').style.color = "#28a745";
+                    // Update button styles
+                    document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
+                    document.getElementById('human_led_btn').style.borderColor = "#28a745";
+                    document.getElementById('ai_led_btn').style.backgroundColor = "#6c757d";
+                    document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
+                    currentMode = 'human_led';
+                }
+            }
+        }
+
+        function toggleMode() {
+            // Toggle between ai_led and human_led
+            if (currentMode === 'ai_led') {
+                switchToMode('human_led');
+            } else {
+                switchToMode('ai_led');
+            }
+        }
 
         function getDomData() {
             var userInfo = JSON.parse(sessionStorage.getItem('before_game')) || {}
@@ -482,16 +680,30 @@
             if (gamephase == -1) {
                 document.getElementById('trail_info').style = "font-size: larger; display: content"
                 document.getElementById('partner_color').style = "font-size: larger; display: none"
+                // Apply trial style to communication panel for smaller size
+                document.getElementById('communication').classList.add('trial');
+                // Apply trial style to right column
+                document.querySelector('div[style*="min-width: 350px; max-width: 380px"]').classList.add('trial-right-column');
             }
             else if (gamephase == 0) {
                 document.getElementById('human_test').style = "font-size: larger; display: content"
                 document.getElementById('partner_color').style = "font-size: larger; display: none"
+                // Apply trial style to communication panel for smaller size
+                document.getElementById('communication').classList.add('trial');
+                // Apply trial style to right column
+                document.querySelector('div[style*="min-width: 350px; max-width: 380px"]').classList.add('trial-right-column');
             }
             else if (gamephase > 6) {
                 document.getElementById('idx3').style = "color: rgb(68, 153, 113); display: content;"
                 document.getElementById('main_game').style = "font-size: larger; display: content"
-                document.getElementById('game_id').innerText = game_sequence_idx;
-                document.getElementById('max_id').innerText = maxphase;
+                // For official phases 9-12, show as round 1-4
+                if (gamephase >= 9 && gamephase <= 12) {
+                    document.getElementById('game_id').innerText = gamephase - 8; // 9->1, 10->2, 11->3, 12->4
+                    document.getElementById('max_id').innerText = 4;
+                } else {
+                    document.getElementById('game_id').innerText = game_sequence_idx;
+                    document.getElementById('max_id').innerText = maxphase;
+                }
             }
             else if (gamephase > 4) {
                 document.getElementById('idx2').style = "color: #da4bd2; display: content;"
@@ -515,6 +727,16 @@
             // Show mode switch button only for phases 9, 10, 11, 12
             if (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12) {
                 document.getElementById('mode_switch_container').style.display = "block";
+                // Adjust canvas size for formal game phases (smaller for Windows screen)
+                canvasWidth = 620;
+                canvasHeight = 560;
+                canvasElement.width = canvasWidth;
+                canvasElement.height = canvasHeight;
+                // Apply compact style to communication panel
+                document.getElementById('communication').classList.add('compact');
+                // Hide the hat color information for formal phases
+                document.querySelector('div[style="font-size: larger;"]').style.display = "none";
+                document.getElementById('partner_color').style.display = "none";
             }
             else if (gamephase == null) {
                 alert("You have finished the experiment.")
@@ -553,9 +775,66 @@
 
             // sessionStorage.setItem("")
 
+            // randomize for phase 9/10 BEFORE WebSocket connection
+            console.log('Checking phase', gamephase, 'for random mode assignment');
+            console.log('Phase 9 mode set check:', sessionStorage.getItem('phase9ModeSet'));
+            console.log('Phase 10 mode set check:', sessionStorage.getItem('phase10ModeSet'));
+            
+            if (gamephase == 9 && !sessionStorage.getItem('phase9ModeSet')) {
+                sessionStorage.setItem('phase9ModeSet', '1');
+                // randomize human_led 或 ai_led
+                var randomMode = Math.random() < 0.5 ? 'human_led' : 'ai_led';
+                console.log('Phase 9: Randomly assigned mode:', randomMode);
+                
+                // Store the randomly assigned mode to verify later
+                sessionStorage.setItem('phase9RandomMode', randomMode);
+                console.log('Phase 9: Stored random mode for later WebSocket sending');
+            } else if (gamephase == 9) {
+                console.log('Phase 9: Mode already set, skipping random assignment');
+                console.log('Phase 9: Previously assigned mode:', sessionStorage.getItem('phase9RandomMode'));
+            }
+            
+            if (gamephase == 10 && !sessionStorage.getItem('phase10ModeSet')) {
+                sessionStorage.setItem('phase10ModeSet', '1');
+                // randomize human_led 或 ai_led
+                var randomMode = Math.random() < 0.5 ? 'human_led' : 'ai_led';
+                console.log('Phase 10: Randomly assigned mode:', randomMode);
+                
+                // Store the randomly assigned mode to verify later
+                sessionStorage.setItem('phase10RandomMode', randomMode);
+                console.log('Phase 10: Stored random mode for later WebSocket sending');
+            } else if (gamephase == 10) {
+                console.log('Phase 10: Mode already set, skipping random assignment');
+                console.log('Phase 10: Previously assigned mode:', sessionStorage.getItem('phase10RandomMode'));
+            }
+
             var websocket = new WebSocket(
                 "ws://" + window.location.hostname + ":63000/" + agentID + "/connect"
             );// var socket = io.connect();
+            
+            // Send random mode immediately when WebSocket opens
+            websocket.onopen = function() {
+                console.log('WebSocket opened');
+                
+                // Send random mode for phase 9
+                if (gamephase == 9) {
+                    var randomMode = sessionStorage.getItem('phase9RandomMode');
+                    if (randomMode) {
+                        console.log('Phase 9: Sending random mode on WebSocket open:', randomMode);
+                        websocket.send("MODE_SWITCH:" + randomMode);
+                    }
+                }
+                
+                // Send random mode for phase 10
+                if (gamephase == 10) {
+                    var randomMode = sessionStorage.getItem('phase10RandomMode');
+                    if (randomMode) {
+                        console.log('Phase 10: Sending random mode on WebSocket open:', randomMode);
+                        websocket.send("MODE_SWITCH:" + randomMode);
+                    }
+                }
+            };
+            
             // Add a global flag to control if human can send messages
             var allowHumanMessage = true;
 
@@ -607,6 +886,22 @@
                 // Update mode display if available
                 if (typeof data['agent_mode'] !== 'undefined' && (gamephase == 9 || gamephase == 10 || gamephase == 11 || gamephase == 12)) {
                     const mode = data['agent_mode'];
+                    console.log('WebSocket received agent_mode:', mode, 'for phase:', gamephase);
+                    
+                    // Check if this conflicts with our random assignment
+                    if (gamephase == 9) {
+                        const expectedMode = sessionStorage.getItem('phase9RandomMode');
+                        if (expectedMode && expectedMode !== mode) {
+                            console.warn('Phase 9: Backend mode (' + mode + ') differs from random assignment (' + expectedMode + ')');
+                        }
+                    }
+                    if (gamephase == 10) {
+                        const expectedMode = sessionStorage.getItem('phase10RandomMode');
+                        if (expectedMode && expectedMode !== mode) {
+                            console.warn('Phase 10: Backend mode (' + mode + ') differs from random assignment (' + expectedMode + ')');
+                        }
+                    }
+                    
                     if (mode === 'ai_led') {
                         document.getElementById('current_mode').innerText = "AI-led";
                         document.getElementById('current_mode').style.color = "#007bff";
@@ -731,6 +1026,11 @@
                     case '4': instruction = 7; break; // Plate
                     case '5': instruction = 9; break; // Fire
                     case '6': feedback = 1; break; // Good job!
+                    case 'Shift': 
+                        // Toggle mode switch with Shift key
+                        e.preventDefault(); // Prevent default Shift behavior
+                        toggleMode();
+                        return; // Don't send to websocket
                     default: break;
                 }
                 // Only allow sending messages if allowed
@@ -796,11 +1096,15 @@
             document.body.appendChild(fakeButtonModal);
 
             function showFakeButtonModal() {
+                // Pause the game when showing questionnaire
+                pauseGame();
                 document.getElementById('fakeButtonReason').value = '';
                 fakeButtonModal.style.display = 'block';
             }
             function hideFakeButtonModal() {
                 fakeButtonModal.style.display = 'none';
+                // Resume the game when hiding questionnaire
+                resumeGame();
             }
             document.getElementById('fakeButtonSubmit').onclick = function() {
                 const reason = document.getElementById('fakeButtonReason').value;
@@ -825,37 +1129,11 @@
 
             // Mode switch button event listeners
             document.getElementById('ai_led_btn').addEventListener('click', function() {
-                if (gamephase == 11 || gamephase == 12) {
-                    showFakeButtonModal();
-                    return;
-                }
-                if (websocket.readyState === WebSocket.OPEN) {
-                    websocket.send("MODE_SWITCH:ai_led");
-                    document.getElementById('current_mode').innerText = "AI-led";
-                    document.getElementById('current_mode').style.color = "#007bff";
-                    // Update button styles
-                    document.getElementById('ai_led_btn').style.backgroundColor = "#007bff";
-                    document.getElementById('ai_led_btn').style.borderColor = "#007bff";
-                    document.getElementById('human_led_btn').style.backgroundColor = "#6c757d";
-                    document.getElementById('human_led_btn').style.borderColor = "#6c757d";
-                }
+                switchToMode('ai_led');
             });
             
             document.getElementById('human_led_btn').addEventListener('click', function() {
-                if (gamephase == 11 || gamephase == 12) {
-                    showFakeButtonModal();
-                    return;
-                }
-                if (websocket.readyState === WebSocket.OPEN) {
-                    websocket.send("MODE_SWITCH:human_led");
-                    document.getElementById('current_mode').innerText = "Human-led";
-                    document.getElementById('current_mode').style.color = "#28a745";
-                    // Update button styles
-                    document.getElementById('human_led_btn').style.backgroundColor = "#28a745";
-                    document.getElementById('human_led_btn').style.borderColor = "#28a745";
-                    document.getElementById('ai_led_btn').style.backgroundColor = "#6c757d";
-                    document.getElementById('ai_led_btn').style.borderColor = "#6c757d";
-                }
+                switchToMode('human_led');
             });
 
             window.addEventListener("unload", function () {
@@ -888,10 +1166,10 @@
                     instrImgs.style.alignItems = 'center';
                     instrImgs.style.flexDirection = 'column';
                     instrImgs.innerHTML = `
-                        <img src="/static/images/beefburger.png" style="width:250px">
-                        <img src="/static/images/fire.png" style="width:250px">
-                        <img src="/static/images/lettuceburger.png" style="width:250px">
-                        <img src="/static/images/beeflettuceburger.png" style="width:250px">
+                        <img src="/static/images/beefburger.png" style="width:220px">
+                        <img src="/static/images/fire.png" style="width:220px">
+                        <img src="/static/images/lettuceburger.png" style="width:220px">
+                        <img src="/static/images/beeflettuceburger.png" style="width:220px">
                     `;
                     // Insert before game-canvas
                     var leftCol = document.querySelector('div[style*="flex: 1;"]');
@@ -899,9 +1177,9 @@
                 } else {
                     instrImgs.style.display = 'flex';
                 }
-                // Set canvas size to 480x600
-                canvasWidth = 480;
-                canvasHeight = 600;
+                // Set canvas size to 450x570 (reduced by 10px more from 460x580)
+                canvasWidth = 450;
+                canvasHeight = 570;
             } else {
                 // Hide instruction images if present
                 var instrImgs = document.getElementById('instruction-images');
@@ -932,7 +1210,7 @@
                 };
             }
 
-            // 自动切换模式 for phase 11/12
+            // automatically switch mode for phase 11/12
             if (gamephase == 11 && !sessionStorage.getItem('phase11ModeSet')) {
                 sessionStorage.setItem('phase11ModeSet', '1');
                 if (websocket.readyState === WebSocket.OPEN) {

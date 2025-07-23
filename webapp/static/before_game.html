@@ -62,14 +62,6 @@
             </div> \
             <hr>'
 
-        var phone = '<div> \
-            <p>For contact maybe a phone number </p> \
-            <div> \
-                <input id="phone" type="text" name="phone" value=""> \
-            </div> \
-            </div> \
-            <hr>'
-
         var email = '<div> \
             <p>For contact maybe a email?</p> \
             <div> \
@@ -133,21 +125,29 @@
                 </div> \
                 <hr>'
 
+        var teamPlayer = '<div> \
+            <p>Do you consider yourself more like a team player or individual contributor?</p> \
+            <div> \
+                <input type="radio" name="teamPlayer" value="team_player">Team player<br> \
+                <input type="radio" name="teamPlayer" value="individual_contributor">Individual contributor \
+            </div> \
+            </div> \
+            <hr>'
+
 
         var setting_list = [
             'name',
-            'phone',
             'email',
             'id',
             'age',
             'gender',
             'gameskill',
             'is_played',
-            'level'
+            'level',
+            'team_player'
         ]
         var setting_dict = {
             'name': name,
-            'phone': phone,
             'email': email,
             'age': age,
             'gender': gender,
@@ -155,6 +155,7 @@
             'is_played': isPlayed,
             'level': level,
             'id': id,
+            'team_player': teamPlayer,
         }
 
         var id_exist = {
@@ -193,12 +194,8 @@
                 userInfo.name = Math.random().toString(36).slice(-8)
             }
 
-            if (id_exist['phone']) {
-                userInfo.phone = $('#phone').val()
-            } else {
-                userInfo.phone = Math.random().toString(36).slice(-8)
-            }
-
+            // Generate random phone for backend compatibility
+            userInfo.phone = Math.random().toString(36).slice(-8)
 
             if (id_exist['email']) {
                 userInfo.email = $('#email').val()
@@ -256,6 +253,14 @@
                 }
             }
 
+            if (id_exist['team_player']) {
+                userInfo.team_player = $("input[name='teamPlayer']:checked").val();
+                if (userInfo.team_player == undefined) {
+                    alert('Please select whether you are more like a team player or individual contributor!')
+                    return
+                }
+            }
+
             // saveUserInfo
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/create_questionnaire_before_game", false); // false for synchronous
@@ -264,7 +269,7 @@
             var response = JSON.parse(xhr.response);
             userInfo.exp_type = response.exp_type
             saveDataToSession()
-            window.location.href = '/html/instructions'
+            window.location.href = '/html/baseline_test'
         }
         function saveDataToSession() {
             console.log(userInfo)

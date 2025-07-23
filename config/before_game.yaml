@@ -7,3 +7,4 @@ is_played: True
 id: True
 gameskill: False
 level: False
+team_player: True

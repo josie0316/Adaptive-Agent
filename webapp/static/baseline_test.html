@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/instruction.css">
+
+    <title>Baseline Reaction Time Test</title>
+    <link rel="Favicon" href="../static/favicon.ico" />
+
+    <script src="../static/js/jquery-3.6.3.js"></script>
+    <script src="../static/js/popper.min.js" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        
+        .test-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #28a745;
+            display: none;
+            margin: 50px auto;
+            animation: fadeIn 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .instructions {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .results {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            max-width: 500px;
+        }
+        
+        .start-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .start-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .continue-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .continue-btn:hover {
+            background-color: #1e7e34;
+        }
+        
+        .waiting-text {
+            font-size: 24px;
+            color: #666;
+            margin: 40px 0;
+            display: none;
+        }
+        
+        .trial-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            z-index: 1000;
+        }
+
+        .test-area {
+            width: 100vw;
+            height: 100vh;
+            background-color: #f0f0f0;
+            position: relative;
+            display: none;
+        }
+
+        .center-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .key-instruction {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .stats-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stats-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Instructions Phase -->
+    <div class="test-container" id="instructionsPanel">
+        <div class="instructions">
+            <h2>Baseline Reaction Time Test</h2>
+            <br>
+            
+            <h4>Simple Visual Reaction Task</h4>
+            <p style="font-size: 16px; line-height: 1.6;">
+                <strong>Instructions:</strong><br><br>
+                
+                • Green circles will appear randomly on the screen<br><br>
+                
+                • When you see a green circle, press the <strong>ENTER</strong> key as quickly as possible<br><br>
+                
+                • There will be <strong>20 trials</strong> in total<br><br>
+                
+                • Each trial has a random waiting time between 1-4 seconds<br><br>
+                
+                • This test takes approximately <strong>2 minutes</strong><br><br>
+                
+                • Please stay focused and react as quickly as you can<br><br>
+                
+                <strong>Remember: Press ENTER when you see the green circle!</strong>
+            </p>
+            
+            <div class="text-center">
+                <button id="startTest" class="start-btn">Start Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Area -->
+    <div class="test-area" id="testArea">
+        <div class="trial-counter" id="trialCounter">Trial 1 / 20</div>
+        
+        <div class="center-content">
+            <div class="waiting-text" id="waitingText">Wait for the green circle...</div>
+            <div class="test-circle" id="testCircle"></div>
+        </div>
+
+        <div class="key-instruction">
+            Press <strong>ENTER</strong> when you see the green circle
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div class="test-container" id="resultsPanel">
+        <div class="results" id="results">
+            <h3>Test Complete!</h3>
+            <p>Thank you for completing the baseline reaction time test.</p>
+            <div id="resultStats"></div>
+            <div id="redirectMessage" style="margin: 20px 0; padding: 15px; background-color: #e7f3ff; border-radius: 5px; display: none;">
+                <p style="margin: 0; color: #0066cc;">
+                    <strong>Redirecting to instructions in <span id="countdown">3</span> seconds...</strong>
+                </p>
+            </div>
+            <div class="text-center">
+                <button id="continueBtn" class="continue-btn">Continue to Instructions Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTrial = 0;
+        let totalTrials = 20;
+        let reactionTimes = [];
+        let testStartTime = 0;
+        let circleTimeout;
+        let testInProgress = false;
+        let waitingForResponse = false;
+        let countdownInterval; // For auto-redirect countdown
+
+        $(document).ready(function() {
+            $('#startTest').click(startReactionTest);
+            $('#continueBtn').click(function() {
+                console.log('Continue button clicked - redirecting immediately');
+                // Clear any existing countdown
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                }
+                continueToInstructions();
+            });
+            
+            // Listen for Enter key
+            $(document).keydown(function(e) {
+                if (e.which === 13) { // Enter key
+                    handleKeyPress();
+                }
+            });
+        });
+
+        function startReactionTest() {
+            $('#instructionsPanel').hide();
+            $('#testArea').show();
+            currentTrial = 0;
+            reactionTimes = [];
+            testInProgress = true;
+            nextTrial();
+        }
+
+        function nextTrial() {
+            if (currentTrial >= totalTrials) {
+                finishTest();
+                return;
+            }
+
+            currentTrial++;
+            waitingForResponse = false;
+            $('#trialCounter').text(`Trial ${currentTrial} / ${totalTrials}`);
+            $('#waitingText').show();
+            $('#testCircle').hide();
+
+            // Random delay between 1-4 seconds
+            let delay = Math.random() * 3000 + 1000;
+            
+            circleTimeout = setTimeout(() => {
+                if (testInProgress) {
+                    showCircle();
+                }
+            }, delay);
+        }
+
+        function showCircle() {
+            $('#waitingText').hide();
+            $('#testCircle').show();
+            testStartTime = performance.now();
+            waitingForResponse = true;
+        }
+
+        function handleKeyPress() {
+            if (!testInProgress || !waitingForResponse) {
+                return;
+            }
+
+            let reactionTime = performance.now() - testStartTime;
+            reactionTimes.push(reactionTime);
+            waitingForResponse = false;
+            
+            $('#testCircle').hide();
+            $('#waitingText').text('Good! Get ready for the next one...');
+            $('#waitingText').show();
+            
+            // Brief pause before next trial
+            setTimeout(() => {
+                if (testInProgress) {
+                    nextTrial();
+                }
+            }, 1000);
+        }
+
+        function finishTest() {
+            testInProgress = false;
+            $('#testArea').hide();
+            $('#resultsPanel').show();
+            
+            // Calculate statistics
+            let avgTime = reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length;
+            let minTime = Math.min(...reactionTimes);
+            let maxTime = Math.max(...reactionTimes);
+            let stdDev = calculateStandardDeviation(reactionTimes);
+            
+            $('#resultStats').html(`
+                <table class="stats-table">
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Completed Trials</td>
+                        <td>${reactionTimes.length} / ${totalTrials}</td>
+                    </tr>
+                    <tr>
+                        <td>Average Reaction Time</td>
+                        <td>${avgTime.toFixed(0)} ms</td>
+                    </tr>
+                    <tr>
+                        <td>Fastest Reaction Time</td>
+                        <td>${minTime.toFixed(0)} ms</td>
+                    </tr>
+                    <tr>
+                        <td>Slowest Reaction Time</td>
+                        <td>${maxTime.toFixed(0)} ms</td>
+                    </tr>
+                    <tr>
+                        <td>Standard Deviation</td>
+                        <td>${stdDev.toFixed(0)} ms</td>
+                    </tr>
+                </table>
+            `);
+            
+            // Save results to sessionStorage
+            let baselineResults = {
+                testType: 'reaction_time_enter_key',
+                reactionTimes: reactionTimes,
+                averageTime: avgTime,
+                minTime: minTime,
+                maxTime: maxTime,
+                standardDeviation: stdDev,
+                completedTrials: reactionTimes.length,
+                totalTrials: totalTrials,
+                timestamp: new Date().toISOString()
+            };
+            
+            sessionStorage.setItem('baselineResults', JSON.stringify(baselineResults));
+            
+            // Send results to backend and then auto-redirect
+            sendResultsToBackend(baselineResults);
+            
+            // Show redirect message and start countdown
+            $('#redirectMessage').show();
+            let countdown = 3;
+            $('#countdown').text(countdown);
+            
+            countdownInterval = setInterval(() => {
+                countdown--;
+                $('#countdown').text(countdown);
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    console.log('Auto-redirecting to instructions...');
+                    continueToInstructions();
+                }
+            }, 1000);
+        }
+
+        function calculateStandardDeviation(values) {
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            const squareDiffs = values.map(value => Math.pow(value - avg, 2));
+            const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / values.length;
+            return Math.sqrt(avgSquareDiff);
+        }
+
+        function sendResultsToBackend(results) {
+            let userInfo = JSON.parse(sessionStorage.getItem('before_game') || '{}');
+            
+            let dataToSend = {
+                ...userInfo,
+                baselineTest: results
+            };
+
+            // Send to backend (don't block on this)
+            fetch('/save_baseline_results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            }).then(response => {
+                console.log('Baseline results saved successfully');
+            }).catch(error => {
+                console.error('Error saving baseline results:', error);
+                // Continue anyway - don't block user
+            });
+        }
+
+        function continueToInstructions() {
+            console.log('Navigating to instructions page...');
+            try {
+                window.location.href = '/html/instructions';
+            } catch (error) {
+                console.error('Error navigating to instructions:', error);
+                // Fallback - try alternative navigation
+                window.location.replace('/html/instructions');
+            }
+        }
+
+        // Handle page leave - clean up timers
+        window.addEventListener('beforeunload', function() {
+            if (testInProgress) {
+                clearTimeout(circleTimeout);
+            }
+        });
+
+        // Prevent accidental page refresh during test
+        window.addEventListener('beforeunload', function(e) {
+            if (testInProgress) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
