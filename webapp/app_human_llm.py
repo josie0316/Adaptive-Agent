@@ -139,6 +139,7 @@ def process_frame(frame):
 
 
 async def run_inner_loop(id, outcome, current_traj_element, info_list):
+    global half_max_steps, quarter_and_half_max_steps
 
     env = envs[id]
     controller = controllers[id]
@@ -147,8 +148,10 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
     episode_end = False
     if game_phases[id] >= 0:
         _max_steps = half_max_steps
+        logger.info(f"run_inner_loop: phase {game_phases[id]} >= 0, _max_steps = {_max_steps} (half_max_steps = {half_max_steps})")
     else:
         _max_steps = quarter_and_half_max_steps
+        logger.info(f"run_inner_loop: phase {game_phases[id]} < 0, _max_steps = {_max_steps} (quarter_and_half_max_steps = {quarter_and_half_max_steps})")
 
     while True:
         # for each step
@@ -372,6 +375,7 @@ async def run_inner_loop(id, outcome, current_traj_element, info_list):
 async def startgame(id):
 
     global urgent_response_history_n_event, reflection_history_n_event
+    global half_max_steps, quarter_and_half_max_steps
     try:
         logger.info(f"startgame {id}")
         env = envs[id]
@@ -403,8 +407,10 @@ async def startgame(id):
             PROGRESS_EVENT.clear()
             if game_phases[id] >= 0:
                 _max_steps = half_max_steps
+                logger.info(f"startgame: phase {game_phases[id]} >= 0, _max_steps = {_max_steps} (half_max_steps = {half_max_steps})")
             else:
                 _max_steps = quarter_and_half_max_steps
+                logger.info(f"startgame: phase {game_phases[id]} < 0, _max_steps = {_max_steps} (quarter_and_half_max_steps = {quarter_and_half_max_steps})")
 
             outcome = env.reset(_max_steps)
 
@@ -796,6 +802,7 @@ def beforegame():
 @app.route("/getsettings", methods=["POST"])
 async def getsettings():
     global GAME_ID, globalstate, MAX_GAME
+    global half_max_steps, quarter_and_half_max_steps
     # logger.success(f"{GAME_ID=}")
 
     if request.method == "POST":
@@ -905,6 +912,9 @@ async def getsettings():
                 "max_steps": _max_steps,
             }
         )
+        
+        # Debug: print what we're actually returning
+        logger.info(f"getsettings returning max_steps={_max_steps} for phase {game_phases[agent_id]}")
 
         return ret
 
@@ -1254,8 +1264,10 @@ if __name__ == "__main__":
     urgent_response_interval_n_timestep = conf.get("urgent_response_interval_n_timestep", 20)
     max_steps = env_conf.get("horizon", 1000)
 
-    half_max_steps = max_steps // 2
+    half_max_steps = 800  # Set to 800 steps for phases 9, 10, 11, 12
     quarter_and_half_max_steps = max_steps // 2 + max_steps // 4
+    # Ensure environment horizon can support the longest game phase
+    env_conf["horizon"] = max(max_steps, half_max_steps, quarter_and_half_max_steps)
     # quarter_and_half_max_steps = 1
     if quarter_and_half_max_steps != max_steps // 2 + max_steps // 4:
         logger.warning(f"quarter_and_half_max_steps is not {max_steps // 2 + max_steps // 4}!!!")

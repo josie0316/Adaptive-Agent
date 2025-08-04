@@ -1,0 +1,15 @@
+complete_reward: 20.0
+horizon: 1000
+interact_reward: 0
+max_order: 4
+mode: burger
+name: overcooked
+num_agents: 2
+obs_spaces: 2d_flatten
+progress_reward: 5.0
+punish_reward: -10.0
+recipes:
+- BeefBurgerDeliver
+- LettuceBurgerDeliver
+- BeefLettuceBurgerDeliver
+step_cost: 0

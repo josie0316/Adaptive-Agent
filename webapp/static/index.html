@@ -12,6 +12,64 @@
         padding: 0;
         overflow: hidden;
     }
+    
+    /* Simple responsive adjustments */
+    @media screen and (max-width: 1200px) {
+        .communication {
+            width: 300px !important;
+        }
+        .communication.compact {
+            width: 300px !important;
+        }
+        .communication.trial {
+            width: 280px !important;
+        }
+        .agent_communication {
+            width: 400px !important;
+        }
+        #communication_info {
+            width: 280px !important;
+        }
+        #agent_info {
+            width: 380px !important;
+        }
+    }
+    
+    @media screen and (max-width: 900px) {
+        .communication {
+            width: 280px !important;
+            height: 400px !important;
+        }
+        .communication.compact {
+            width: 280px !important;
+            height: 320px !important;
+        }
+        .communication.trial {
+            width: 260px !important;
+            height: 380px !important;
+        }
+        .agent_communication {
+            width: 350px !important;
+            height: 140px !important;
+        }
+        #game-canvas canvas {
+            max-width: 90vw !important;
+            max-height: 60vh !important;
+        }
+        #communication_info {
+            width: 260px !important;
+        }
+        #agent_info {
+            width: 330px !important;
+        }
+    }
+    
+    /* Canvas responsive styling */
+    #game-canvas canvas {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+    }
     .agent_communication {
         width: 480px;
         height: 160px;
@@ -321,7 +379,7 @@
         display: none;
         justify-content: center;
         align-items: center;
-        z-index: 1500;
+        z-index: 500;
         font-size: 24px;
         font-weight: bold;
         color: white;
@@ -355,10 +413,10 @@
             <button id="closeRoundInfoModal" style="padding: 8px 32px; font-size: 1em; border-radius: 6px; background: #007bff; color: white; border: none; cursor: pointer;">Start</button>
         </div>
     </div>
-    <div style="display: flex; align-items: flex-start; flex-direction: row; width: 100vw; height: 100vh;">
+    <div style="display: flex; align-items: flex-start; flex-direction: row; width: 100vw; height: 100vh; max-width: 100%; box-sizing: border-box;">
         <!-- Left column: Game canvas -->
-        <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; margin-left: 40px; margin-right: 40px; margin-top: 32px;">
-            <div id="game-canvas" style="position: relative;">
+        <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; margin-left: 40px; margin-right: 40px; margin-top: 32px; min-width: 0;">
+            <div id="game-canvas" style="position: relative; max-width: 100%;">
                 <!-- Game pause overlay -->
                 <div id="gamePauseOverlay" class="game-pause-overlay">
                     <div>GAME PAUSED</div>
@@ -366,7 +424,7 @@
             </div>
         </div>
         <!-- Right column: Info rows, mode switch, message window -->
-        <div style="display: flex; flex-direction: column; min-width: 350px; max-width: 380px; margin-right: 40px; margin-left: 40px; height: 100vh; margin-top: 32px;">
+        <div style="display: flex; flex-direction: column; min-width: 350px; max-width: 380px; margin-right: 40px; margin-left: 40px; height: 100vh; margin-top: 32px; flex-shrink: 0;">
             <!-- Info rows -->
             <div id="info-rows" style="margin-bottom: 16px;">
                 <div style="font-size: larger;">
@@ -1010,6 +1068,15 @@
             */
             // Update keydown handler to check allowHumanMessage for message keys
             document.addEventListener('keydown', function (e) {
+                // If modal is open, only handle Enter key for modal
+                if (fakeButtonModal.style.display === 'block') {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submitFakeButtonAnswer();
+                    }
+                    return; // Don't process other keys when modal is open
+                }
+                
                 var action = 0
                 var instruction = 0
                 var feedback = 0
@@ -1083,14 +1150,13 @@
             fakeButtonModal.style.top = '0';
             fakeButtonModal.style.width = '100vw';
             fakeButtonModal.style.height = '100vh';
-            fakeButtonModal.style.background = 'rgba(0,0,0,0.3)';
-            fakeButtonModal.style.zIndex = '1000';
+            fakeButtonModal.style.background = 'rgba(0,0,0,0.5)';
+            fakeButtonModal.style.zIndex = '2000';
             fakeButtonModal.innerHTML = `
                 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:24px 32px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.2);min-width:300px;">
-                    <div style="font-size:16px;margin-bottom:10px;">Why do you press the button?</div>
-                    <input id="fakeButtonReason" type="text" style="width:100%;padding:6px 8px;margin-bottom:10px;" placeholder="Your answer..." />
-                    <button id="fakeButtonSubmit" style="padding:6px 18px;">Submit</button>
-                    <button id="fakeButtonCancel" style="padding:6px 18px;margin-left:10px;">Cancel</button>
+                    <div style="font-size:16px;margin-bottom:10px;">Why do you choose this mode?</div>
+                    <input id="fakeButtonReason" type="text" style="width:100%;padding:8px 12px;margin-bottom:15px;border:1px solid #ddd;border-radius:4px;" placeholder="Type your answer and press Enter..." />
+                    <div style="font-size:12px;color:#666;text-align:center;">Press <strong>Enter</strong> to submit your answer</div>
                 </div>
             `;
             document.body.appendChild(fakeButtonModal);
@@ -1100,14 +1166,25 @@
                 pauseGame();
                 document.getElementById('fakeButtonReason').value = '';
                 fakeButtonModal.style.display = 'block';
+                // Focus on the input field
+                setTimeout(() => {
+                    document.getElementById('fakeButtonReason').focus();
+                }, 100);
             }
+            
             function hideFakeButtonModal() {
                 fakeButtonModal.style.display = 'none';
                 // Resume the game when hiding questionnaire
                 resumeGame();
             }
-            document.getElementById('fakeButtonSubmit').onclick = function() {
-                const reason = document.getElementById('fakeButtonReason').value;
+            
+            function submitFakeButtonAnswer() {
+                const reason = document.getElementById('fakeButtonReason').value.trim();
+                if (!reason) {
+                    alert('Please enter your answer before submitting.');
+                    return;
+                }
+                
                 // Send to backend
                 fetch('/log_fake_button_press', {
                     method: 'POST',
@@ -1121,11 +1198,7 @@
                     })
                 });
                 hideFakeButtonModal();
-                alert('Thank you for your feedback!');
-            };
-            document.getElementById('fakeButtonCancel').onclick = function() {
-                hideFakeButtonModal();
-            };
+            }
 
             // Mode switch button event listeners
             document.getElementById('ai_led_btn').addEventListener('click', function() {
@@ -1232,6 +1305,59 @@
                 }
             }
         }
+        
+        // Simple screen resize handler
+        window.addEventListener('resize', function() {
+            setTimeout(function() {
+                const screenWidth = window.innerWidth;
+                console.log('Screen resized to width:', screenWidth);
+                
+                if (canvasElement) {
+                    let newWidth, newHeight;
+                    
+                    // Adjust canvas size based on screen width
+                    if (gamephase == -1 || gamephase == 0) {
+                        // Trial phases
+                        if (screenWidth < 900) {
+                            newWidth = 350;
+                            newHeight = 450;
+                        } else if (screenWidth < 1200) {
+                            newWidth = 400;
+                            newHeight = 500;
+                        } else {
+                            newWidth = 450;
+                            newHeight = 570;
+                        }
+                    } else {
+                        // Regular phases  
+                        if (screenWidth < 900) {
+                            newWidth = 450;
+                            newHeight = 450;
+                        } else if (screenWidth < 1200) {
+                            newWidth = 550;
+                            newHeight = 550;
+                        } else {
+                            newWidth = 650;
+                            newHeight = 650;
+                        }
+                    }
+                    
+                    // Only update if size actually changed
+                    if (canvasElement.width !== newWidth || canvasElement.height !== newHeight) {
+                        canvasElement.width = newWidth;
+                        canvasElement.height = newHeight;
+                        canvasWidth = newWidth;
+                        canvasHeight = newHeight;
+                        console.log('Canvas resized to:', newWidth, 'x', newHeight);
+                    }
+                }
+            }, 100);
+        });
+
+        // Initial call to set appropriate size
+        setTimeout(function() {
+            window.dispatchEvent(new Event('resize'));
+        }, 500);
 
     </script>
 </body>

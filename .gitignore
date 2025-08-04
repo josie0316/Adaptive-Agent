@@ -2,6 +2,11 @@
 .idea/
 **/.DS_Store
 
+# API keys and sensitive information
+llms/litellm/api_key.env
+*.env
+**/api_key.env
+
 data/
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -25,7 +25,6 @@
         <!--  -->
         <h3>Please read the following instructions carefully.
           <br>
-          。，，，。。
         </h3>
         <hr>
       </div>
@@ -37,7 +36,6 @@
           in a restaurant that serves burgers. The interface of the game is show
           below:
           <br>
-          ，。，。：
         </p>
         <img src="/static/images/guide.png" style="width:540px">
 
@@ -67,12 +65,11 @@
         Note that you and your partner <u><b>cannot occupy the same location</b></u>. <br>Agent。
       </p> -->
         <div id="bi-comm">
-          <h3>Communication, Movement and interactions<br>: 、</h3>
+          <h3>Communication, Movement and interactions<br>: </h3>
           <p style="font-size: 20px;">
-            Note that you can send messge to your partner via <b>clicking the
-              message button</b> or <b>pressing the shortcuts</b>.
             <br>
             We recommend you to control in the following two ways:
+            <br>
             1. Use <b>W A S D</b> to control the directions, use <b>Space</b> to
             interact with objects, and <b>clicking buttons</b> to send messages.
             <br>
@@ -81,31 +78,30 @@
             messages.
             <br>
             <br>
-            <b></b><b></b>，
+            <b></b><b></b>
             <br>
-            ：</p>
+            </p>
           <div style="column-count: 2">
             <p style="font-size: 16px;">1. <b>W A S
-                D</b>，<b></b>，<b></b>。</p>
+                D</b><b></b><b></b></p>
             <img src="/static/images/keyboard.png" style="width:160px">
             <p style="font-size: 16px;">2.
-              <b></b>，<b></b>，<b></b>。</p>
+              <b></b><b></b><b></b></p>
             <img src="/static/images/keyboard2.png" style="width:160px">
           </div>
 
           <p style="font-size: 20px;">
+            <br>
+            Note that there are two different modes: <b>ai-led</b> and <b>human-led</b> mode.
+            In <b>human-led</b> mode, you can send messge to your partner via <b>clicking the
+            message button</b> or <b>pressing the shortcuts</b>.
             Each item's button means that you think your team need this item.
-            And you can
-            also sent Good Job or Need improvement to the agent.
+            And you can also sent Good Job to the agent.
             <br>
-            And the agent will also send you message.
+            In <b>ai-led</b> mode, the agent will also send you message.
+
             <br>
-            。“Good
-            Job”“Need improvement”。
-            <br>
-            Agent。
-            <br>
-            <img src="/static/images/communication_bi.png" style="width:540px">
+            <img src="/static/images/human_message.png" style="width:540px">
           </p>
         </div>
 
@@ -132,18 +128,18 @@
           </div>
 
           <p style="font-size: 20px;">
-            Note that the agent will send you message about team cooperation and
+            Note that in ai-led mode,the agent will send you message about team cooperation and
             you can check it here.
             <br>
             ，Agent，。
           </p>
-          <img src="/static/images/communication_agent.png" style="width:540px">
+          <img src="/static/images/agent_message.png" style="width:540px">
         </div>
 
         <div id="human-comm">
           <h3>Communication, Movement and interactions<br>: 、</h3>
           <p style="font-size: 20px;">
-            Note that you can send messge to your partner via <b>clicking the
+            Note that in human-led mode, you can send messge to your partner via <b>clicking the
               message button</b> or <b>pressing the shortcuts</b>.
             <br>
             We recommend you to control in the following two ways:
@@ -285,15 +281,15 @@
         };
 
         var exp_type = sessionStorage.getItem('exptype')
-        console.log(exp_type)
+        console.log('exptype from sessionStorage:', exp_type)
 
         document.querySelectorAll('#bi-comm, #human-comm, #agent-comm, #no-comm').forEach(div => {
           div.style = "display: none";
         });
 
-
-        const divId = typeToDiv[exp_type];
-        console.log(divId)
+        // Default to bidirectional communication if no exptype is set
+        const divId = typeToDiv[exp_type] || 'bi-comm';
+        console.log('Selected instruction div:', divId)
         if (divId) {
           document.getElementById(divId).style = "display: block";
         }
