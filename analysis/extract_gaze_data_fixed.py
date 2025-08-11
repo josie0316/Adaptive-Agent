@@ -25,6 +25,7 @@ Data Quality Features:
 
 import pandas as pd
 import numpy as np
+import sys
 from pathlib import Path
 
 def filter_invalid_samples(df, time_column):
@@ -60,19 +61,50 @@ def filter_invalid_samples(df, time_column):
     return df, quality_report
 
 
-def extract_gaze_data():
+def extract_gaze_data(participant_id=3):
     """Extract gaze data with only cognitive load relevant columns."""
+
+    print(f"👁️ Processing Participant {participant_id}")
     
     # File paths
     participants_dir = Path("Participants")
     eyetracking_log_path = participants_dir / "Eyetracking_log.csv"
-    gaze_data_path = participants_dir / "User 3_all_gaze.csv"
-    output_path = participants_dir / "extracted_gaze_data_fixed.csv"
+    gaze_data_path = participants_dir / f"User {participant_id}_all_gaze.csv"
+    output_path = participants_dir / "outputs" / f"extracted_gaze_data_{participant_id}.csv"
+
+    print(f"📁 Input files:")
+    print(f"  👁️ Gaze data: {gaze_data_path}")
+    print(f"  📊 Eyetracking log: {eyetracking_log_path}")
+    print(f"📁 Output file: {output_path}")
+
+    # Check if gaze data file exists
+    if not gaze_data_path.exists():
+        print(f"❌ Error: Gaze data file not found: {gaze_data_path}")
+        print(f"💡 Available gaze files:")
+        gaze_files = list(participants_dir.glob("User *_all_gaze.csv"))
+        if gaze_files:
+            for f in gaze_files:
+                print(f"    {f.name}")
+        else:
+            print(f"    No gaze files found in {participants_dir}")
+        return False
 
     try:
-        # Load time intervals
+        # Load time intervals and filter for this participant
         time_intervals = pd.read_csv(eyetracking_log_path)
-        print(f"✅ Loaded {len(time_intervals)} time intervals")
+        
+        # Filter eyetracking log for this participant
+        if 'participant_id' in time_intervals.columns:
+            participant_intervals = time_intervals[time_intervals['participant_id'] == participant_id]
+            if participant_intervals.empty:
+                print(f"❌ No eyetracking intervals found for participant {participant_id}")
+                print(f"Available participants: {sorted(time_intervals['participant_id'].unique())}")
+                return False
+            time_intervals = participant_intervals
+        else:
+            print(f"⚠️ No participant_id column in Eyetracking_log.csv - using all intervals")
+        
+        print(f"✅ Loaded {len(time_intervals)} time intervals for participant {participant_id}")
         print("Time intervals:")
         print(time_intervals.to_string())
     except FileNotFoundError:
@@ -168,20 +200,16 @@ def extract_gaze_data():
             
             if len(interval_data_clean) > 0:
             # Add metadata columns to identify which interval this data belongs to
+                interval_data_clean['participant_id'] = participant_id
                 interval_data_clean['Round_ID'] = round_id
                 interval_data_clean['Segment_ID'] = segment_id
                 interval_data_clean['Interval_Start_s'] = start_time_s
                 interval_data_clean['Interval_End_s'] = end_time_s
             
-            # Add other metadata if available
-            if 'Cognitive_load' in row and pd.notna(row['Cognitive_load']):
-                interval_data_clean['Cognitive_load'] = row['Cognitive_load']
-            if 'Score' in row and pd.notna(row['Score']):
-                interval_data_clean['Score'] = row['Score']
-            
             all_extracted_data.append(interval_data_clean)
 
             quality_report['round_id'] = round_id
+            quality_report['participant_id'] = participant_id
             all_quality_reports.append(quality_report)
             
             # Show actual time range of extracted data
@@ -210,6 +238,9 @@ def extract_gaze_data():
     print(f"📊 Extraction ratio: {len(extracted_df)/len(gaze_data)*100:.1f}%")
     print(f"📊 Final columns ({len(extracted_df.columns)}): {list(extracted_df.columns)}")
     
+    # Verify participant_id column
+    print(f"🔍 Participant ID verification: {extracted_df['participant_id'].unique()}")
+
     # Show summary of extracted data
     print(f"\n📈 Summary by interval:")
     summary = extracted_df.groupby(['Round_ID', 'Segment_ID']).agg({
@@ -253,7 +284,22 @@ if __name__ == "__main__":
     print("👁️ Cognitive Load Gaze Data Extraction Tool")
     print("============================================\n")
     
-    success = extract_gaze_data()
+        # Parse command line arguments
+    if len(sys.argv) > 1:
+        try:
+            participant_id = int(sys.argv[1])
+            print(f"🎯 Using participant ID from command line: {participant_id}")
+        except ValueError:
+            print("❌ Error: Participant ID must be an integer")
+            print("Usage: python extract_gaze_data_fixed.py [participant_id]")
+            print("Example: python extract_gaze_data_fixed.py 3")
+            sys.exit(1)
+    else:
+        participant_id = 3  # Default value
+        print(f"🎯 Using default participant ID: {participant_id}")
+        print("💡 Tip: You can specify participant ID like: python extract_gaze_data_fixed.py 5")
+    
+    success = extract_gaze_data(participant_id)
     
     if success:
         print("\n✅ Data extraction completed successfully!")
@@ -264,6 +310,6 @@ if __name__ == "__main__":
         print("   • Right pupil data (RPCX, RPCY, RPD, RPS, RPV)")
         print("   • Saccade data (SACCADE_MAG, SACCADE_DIR)")
         print("   • Blink data (BKID, BKDUR, BKPMIN)")
-        print("   • Metadata (Round_ID, Segment_ID, Cognitive_load, Score)")
+        print("   • Metadata (Round_ID, Segment_ID)")
     else:
         print("\n❌ Data extraction failed. Please check the error messages above.")

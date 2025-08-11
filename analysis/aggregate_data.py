@@ -64,12 +64,6 @@ def aggregate_eye_metrics(eye_data_window):
     metrics['window_start'] = eye_data_window.iloc[0, 0] if len(eye_data_window) > 0 else np.nan  # First timestamp
     metrics['window_end'] = eye_data_window.iloc[-1, 0] if len(eye_data_window) > 0 else np.nan   # Last timestamp
     
-    # Add cognitive load and score (should be same for all samples in window)
-    if 'Cognitive_load' in eye_data_window.columns:
-        metrics['cognitive_load'] = eye_data_window['Cognitive_load'].iloc[0]
-    if 'Score' in eye_data_window.columns:
-        metrics['round_score'] = eye_data_window['Score'].iloc[0]
-    
     return metrics
 
 def get_empty_eye_metrics():
@@ -90,8 +84,6 @@ def get_empty_eye_metrics():
         'total_samples': 0,
         'window_start': np.nan,
         'window_end': np.nan,
-        'cognitive_load': np.nan,
-        'round_score': np.nan
     })
     
     return metrics
@@ -125,13 +117,13 @@ def get_round_time_mapping(eye_df):
     
     return time_mapping
 
-def analyze_data_compatibility():
+def analyze_data_compatibility(participant_id=3):
     """Analyze the compatibility between game and eyetracking data"""
     participants_dir = Path("Participants")
     
     # Check if files exist
-    game_file = participants_dir / "parsed_game_data.csv"
-    eye_file = participants_dir / "extracted_gaze_data_fixed.csv"
+    game_file = participants_dir / "outputs" / f"parsed_game_data_{participant_id}.csv"
+    eye_file = participants_dir / "outputs" / f"extracted_gaze_data_{participant_id}.csv"
     
     print("📊 Data Compatibility Analysis")
     print("=" * 50)
@@ -183,7 +175,7 @@ def analyze_data_compatibility():
         print(f"❌ Error analyzing data: {e}")
         return False
 
-def aggregate_game_eyetracking_data():
+def aggregate_game_eyetracking_data(participant_id=3):
     """
     Main function to aggregate game and eyetracking data.
     
@@ -191,11 +183,11 @@ def aggregate_game_eyetracking_data():
         bool: Success status
     """
     participants_dir = Path("Participants")
-    game_file = participants_dir / "parsed_game_data.csv"
-    eye_file = participants_dir / "extracted_gaze_data_fixed.csv"
-    output_file = participants_dir / "aggregated_data.csv"
+    game_file = participants_dir / "outputs" / f"parsed_game_data_{participant_id}.csv"
+    eye_file = participants_dir / "outputs" / f"extracted_gaze_data_{participant_id}.csv"
+    output_file = participants_dir / "outputs" / f"aggregated_data_{participant_id}.csv"
     
-    print("🔄 Starting Data Aggregation...")
+    print(f"🔄 Starting Data Aggregation for Participant {participant_id}...")
     
     # Check data compatibility first
     if not analyze_data_compatibility():
@@ -214,6 +206,19 @@ def aggregate_game_eyetracking_data():
         print(f"❌ Error loading data: {e}")
         return False
     
+    # participant id
+    game_participant_ids = set(game_df['participant_id'].unique())
+    eye_participant_ids = set(eye_df['participant_id'].unique())
+    
+    if game_participant_ids != {participant_id} or eye_participant_ids != {participant_id}:
+        print(f"⚠️ Participant ID mismatch detected!")
+        print(f"  Expected: {participant_id}")
+        print(f"  Game data: {game_participant_ids}")
+        print(f"  Eye data: {eye_participant_ids}")
+        return False
+    
+    print(f"✅ Participant ID verified: {participant_id}")
+
     # Get time mapping from eyetracking data
     time_mapping = get_round_time_mapping(eye_df)
     
