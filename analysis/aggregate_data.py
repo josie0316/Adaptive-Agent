@@ -19,6 +19,7 @@ Time Conversion:
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import sys 
 
 def aggregate_eye_metrics(eye_data_window):
     """
@@ -334,8 +335,21 @@ def aggregate_game_eyetracking_data(participant_id=3):
 if __name__ == "__main__":
     print("🔄 Game-Eyetracking Data Aggregation Tool")
     print("=" * 50)
+
+    # Get participant ID from command line arguments
+    if len(sys.argv) > 1:
+        try:
+            participant_id = int(sys.argv[1])
+        except ValueError:
+            print("❌ Invalid participant ID. Please provide a number.")
+            sys.exit(1)
     
-    success = aggregate_game_eyetracking_data()
+    else:
+        participant_id = 3  # Default fallback
+        print(f"⚠️ No participant ID provided, using default: {participant_id}")
+    
+    print(f"🎯 Processing participant: {participant_id}")
+    success = aggregate_game_eyetracking_data(participant_id)
     
     if success:
         print("\n✅ Data aggregation completed successfully!")
