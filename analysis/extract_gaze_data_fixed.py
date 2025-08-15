@@ -27,6 +27,7 @@ import pandas as pd
 import numpy as np
 import sys
 from pathlib import Path
+from scipy import stats
 
 def filter_invalid_samples(df, time_column):
     
@@ -61,10 +62,156 @@ def filter_invalid_samples(df, time_column):
     return df, quality_report
 
 
-def extract_gaze_data(participant_id=3):
+def detect_rolling_outliers(data, window_size=100, k=1.5):
+    """
+    Detect outliers using rolling window statistics.
+    Good for time series data with changing baselines.
+    
+    Args:
+        data: Series of pupil measurements
+        window_size: Size of rolling window
+        k: Multiplier for rolling standard deviation
+        
+    Returns:
+        boolean mask: True for outliers, False for normal data
+    """
+    rolling_mean = data.rolling(window=window_size, center=True).mean()
+    rolling_std = data.rolling(window=window_size, center=True).std()
+    
+    # Handle NaN values at edges
+    rolling_mean = rolling_mean.fillna(method='bfill').fillna(method='ffill')
+    rolling_std = rolling_std.fillna(method='bfill').fillna(method='ffill')
+    
+    lower_bound = rolling_mean - k * rolling_std
+    upper_bound = rolling_mean + k * rolling_std
+    
+    outliers = (data < lower_bound) | (data > upper_bound)
+    return outliers
+
+
+def clean_pupil_outliers(df, method='rolling', sensitivity='high', pupil_cols=['LPD', 'RPD']):
+    """
+    Clean pupil data by removing statistical outliers.
+    
+    Args:
+        df: DataFrame with pupil data
+        method: 'rolling', 'iqr', 'zscore', 'mad'
+        sensitivity: 'low', 'medium', 'high'
+        pupil_cols: Columns to clean
+        
+    Returns:
+        DataFrame: Cleaned data
+    """
+    print(f"\n🧹 STATISTICAL OUTLIER CLEANING")
+    print("=" * 40)
+    print(f"Method: {method.upper()}")
+    print(f"Sensitivity: {sensitivity}")
+    
+    df_clean = df.copy()
+    cleaning_stats = {}
+    
+    for col in pupil_cols:
+        if col not in df_clean.columns:
+            continue
+            
+        print(f"\n📊 Cleaning {col}:")
+        print("-" * 20)
+        
+        # Get valid data
+        valid_mask = (df_clean[col] != 0) & (df_clean[col].notna())
+        valid_data = df_clean.loc[valid_mask, col]
+        
+        if len(valid_data) == 0:
+            print("  ⚠️ No valid data to clean")
+            continue
+        
+        # Detect outliers based on method and sensitivity
+        outlier_mask = None
+        
+        if method == 'rolling':
+            if sensitivity == 'high':
+                k = 1.5
+            elif sensitivity == 'medium':
+                k = 2.0
+            else:  # low
+                k = 2.5
+            outlier_mask = detect_rolling_outliers(valid_data, window_size=100, k=k)
+            
+        elif method == 'iqr':
+            Q1 = valid_data.quantile(0.25)
+            Q3 = valid_data.quantile(0.75)
+            IQR = Q3 - Q1
+            
+            if sensitivity == 'high':
+                k = 1.0
+            elif sensitivity == 'medium':
+                k = 1.5
+            else:  # low
+                k = 2.0
+                
+            lower_bound = Q1 - k * IQR
+            upper_bound = Q3 + k * IQR
+            outlier_mask = (valid_data < lower_bound) | (valid_data > upper_bound)
+            
+        elif method == 'zscore':
+            if sensitivity == 'high':
+                threshold = 2.5
+            elif sensitivity == 'medium':
+                threshold = 3.0
+            else:  # low
+                threshold = 4.0
+                
+            z_scores = np.abs(stats.zscore(valid_data))
+            outlier_mask = z_scores > threshold
+            
+        elif method == 'mad':
+            median = valid_data.median()
+            mad = np.median(np.abs(valid_data - median))
+            modified_z_scores = 0.6745 * (valid_data - median) / mad
+            
+            if sensitivity == 'high':
+                threshold = 2.5
+            elif sensitivity == 'medium':
+                threshold = 3.5
+            else:  # low
+                threshold = 4.5
+                
+            outlier_mask = np.abs(modified_z_scores) > threshold
+        
+        if outlier_mask is not None:
+            # Get indices of outliers in the original dataframe
+            outlier_indices = valid_data[outlier_mask].index
+            
+            # Remove outliers
+            df_clean.loc[outlier_indices, col] = np.nan
+            
+            removed_count = len(outlier_indices)
+            print(f"  Original valid samples: {len(valid_data)}")
+            print(f"  Outliers detected: {removed_count}")
+            print(f"  Outlier percentage: {removed_count/len(valid_data)*100:.1f}%")
+            
+            cleaning_stats[col] = {
+                'original_valid': len(valid_data),
+                'outliers_removed': removed_count,
+                'outlier_percentage': removed_count/len(valid_data)*100
+            }
+    
+    # Summary
+    print(f"\n📊 Cleaning Summary:")
+    for col, stats in cleaning_stats.items():
+        print(f"  {col}: Removed {stats['outliers_removed']} outliers ({stats['outlier_percentage']:.1f}%)")
+    
+    return df_clean, cleaning_stats
+
+
+def extract_gaze_data(participant_id=3, enable_outlier_cleaning=True, cleaning_method='rolling', cleaning_sensitivity='high'):
     """Extract gaze data with only cognitive load relevant columns."""
 
     print(f"👁️ Processing Participant {participant_id}")
+    if enable_outlier_cleaning:
+        print(f"🧹 Outlier cleaning enabled: {cleaning_method.upper()} method, {cleaning_sensitivity} sensitivity")
+    else:
+        print(f"🧹 Outlier cleaning disabled")
     
     # File paths
     participants_dir = Path("Participants")
@@ -228,6 +375,19 @@ def extract_gaze_data(participant_id=3):
     print(f"\n📝 Combining extracted data...")
     extracted_df = pd.concat(all_extracted_data, ignore_index=True)
     
+    # Apply statistical outlier cleaning if enabled
+    if enable_outlier_cleaning:
+        print(f"\n🔍 Applying statistical outlier cleaning...")
+        extracted_df, cleaning_stats = clean_pupil_outliers(
+            extracted_df, 
+            method=cleaning_method, 
+            sensitivity=cleaning_sensitivity,
+            pupil_cols=['LPD', 'RPD']
+        )
+        
+        # Add cleaning info to the output filename
+        output_path = output_path.parent / f"extracted_gaze_data_{participant_id}.csv"
+    
     # Save to new CSV file
     print(f"💾 Saving extracted data to {output_path}...")
     extracted_df.to_csv(output_path, index=False)
@@ -280,30 +440,84 @@ def extract_gaze_data(participant_id=3):
     
     return True
 
+
+def print_usage():
+    """Print usage instructions."""
+    print("Usage: python extract_gaze_data_fixed.py [participant_id] [cleaning_method] [sensitivity]")
+    print("")
+    print("Arguments:")
+    print("  participant_id    Participant ID (default: 3)")
+    print("  cleaning_method   Outlier cleaning method:")
+    print("                    - rolling (default, recommended for time series)")
+    print("                    - iqr (interquartile range)")
+    print("                    - zscore (z-score based)")
+    print("                    - mad (median absolute deviation)")
+    print("                    - none (disable cleaning)")
+    print("  sensitivity       Cleaning sensitivity:")
+    print("                    - low (conservative, removes fewer outliers)")
+    print("                    - medium (balanced)")
+    print("                    - high (aggressive, removes more outliers, default)")
+    print("")
+    print("Examples:")
+    print("  python extract_gaze_data_fixed.py 3")
+    print("  python extract_gaze_data_fixed.py 5 rolling high")
+    print("  python extract_gaze_data_fixed.py 3 iqr medium")
+    print("  python extract_gaze_data_fixed.py 3 none")
+
+
 if __name__ == "__main__":
     print("👁️ Cognitive Load Gaze Data Extraction Tool")
     print("============================================\n")
     
-        # Parse command line arguments
+    # Parse command line arguments
+    participant_id = 3  # Default value
+    enable_cleaning = True
+    cleaning_method = 'rolling'
+    cleaning_sensitivity = 'high'
+    
+    # Check for help
+    if len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h', 'help']:
+        print_usage()
+        sys.exit(0)
+    
     if len(sys.argv) > 1:
         try:
             participant_id = int(sys.argv[1])
             print(f"🎯 Using participant ID from command line: {participant_id}")
         except ValueError:
             print("❌ Error: Participant ID must be an integer")
-            print("Usage: python extract_gaze_data_fixed.py [participant_id]")
-            print("Example: python extract_gaze_data_fixed.py 3")
+            print_usage()
             sys.exit(1)
     else:
-        participant_id = 3  # Default value
         print(f"🎯 Using default participant ID: {participant_id}")
-        print("💡 Tip: You can specify participant ID like: python extract_gaze_data_fixed.py 5")
+        print("💡 Tip: You can specify participant ID like: python extract_gaze_data_fixed.py 3")
     
-    success = extract_gaze_data(participant_id)
+    # Parse cleaning options
+    if len(sys.argv) > 2:
+        cleaning_arg = sys.argv[2].lower()
+        if cleaning_arg == 'none':
+            enable_cleaning = False
+            print("🧹 Outlier cleaning disabled")
+        elif cleaning_arg in ['rolling', 'iqr', 'zscore', 'mad']:
+            cleaning_method = cleaning_arg
+            print(f"🧹 Using cleaning method: {cleaning_method}")
+        else:
+            print(f"⚠️ Unknown cleaning method: {cleaning_arg}, using default: rolling")
+    
+    if len(sys.argv) > 3:
+        sensitivity_arg = sys.argv[3].lower()
+        if sensitivity_arg in ['low', 'medium', 'high']:
+            cleaning_sensitivity = sensitivity_arg
+            print(f"🧹 Using cleaning sensitivity: {cleaning_sensitivity}")
+        else:
+            print(f"⚠️ Unknown sensitivity: {sensitivity_arg}, using default: high")
+    
+    success = extract_gaze_data(participant_id, enable_cleaning, cleaning_method, cleaning_sensitivity)
     
     if success:
         print("\n✅ Data extraction completed successfully!")
-        print("Output file: Participants/extracted_gaze_data_fixed.csv")
+        if enable_cleaning:
+            print(f"🧹 Statistical outlier cleaning applied: {cleaning_method.upper()} method, {cleaning_sensitivity} sensitivity")
         print("\n📋 The extracted file contains ONLY cognitive load relevant columns:")
         print("   • Time column (for temporal analysis)")
         print("   • Left pupil data (LPCX, LPCY, LPD, LPS, LPV)")
@@ -311,5 +525,6 @@ if __name__ == "__main__":
         print("   • Saccade data (SACCADE_MAG, SACCADE_DIR)")
         print("   • Blink data (BKID, BKDUR, BKPMIN)")
         print("   • Metadata (Round_ID, Segment_ID)")
+        print("\n💡 For help, run: python extract_gaze_data_fixed.py --help")
     else:
         print("\n❌ Data extraction failed. Please check the error messages above.")
